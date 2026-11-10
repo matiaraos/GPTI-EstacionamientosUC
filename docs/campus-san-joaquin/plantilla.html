@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estacionamientos · Campus San Joaquín</title>
+<style>
+  :root { font: 16px/1.5 system-ui, sans-serif; color: #173028; background: #f5f6f2; }
+  body { margin: 0 auto; max-width: 78rem; padding: clamp(1rem, 3vw, 3rem); }
+  h1 { margin: 0 0 1.2rem; font-size: clamp(1.7rem, 4vw, 2.75rem); line-height: 1.1; }
+  h2 { font-size: 1.05rem; margin: 1.3rem 0 .4rem; }
+  main { display: grid; grid-template-columns: minmax(17rem, 24rem) 1fr; gap: 1.4rem; }
+  section, figure { border: 1px solid #cbd6cc; background: white; border-radius: 12px; padding: 1rem; margin: 0; min-width: 0; }
+  label { display: block; margin-bottom: .35rem; font-weight: 650; }
+  input[type=search], select { box-sizing: border-box; width: 100%; padding: .65rem; border: 1px solid #657f71; border-radius: 6px; font: inherit; background: white; color: inherit; }
+  select { margin-bottom: .6rem; }
+  input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #007c62; outline-offset: 2px; }
+  canvas { width: 100%; aspect-ratio: 1.37; background: #f4f5ee; border-radius: 6px; display: block; }
+  figcaption, small, footer { color: #42584d; }
+  figcaption { margin-top: .75rem; }
+  ul, ol { padding-inline-start: 1.35rem; }
+  li { margin-bottom: .6rem; }
+  footer { margin-top: 1rem; }
+  a { color: #005743; }
+  #matches { margin: .35rem 0 .75rem; }
+  .key { font-weight: 700; }
+  .parking { color: #176b78; } .gate { color: #9a4806; } .route { color: #006948; } .room { color: #a12758; }
+  @media (max-width: 50rem) { main { grid-template-columns: 1fr; } }
+</style>
+<h1>Estacionamientos de San Joaquín</h1>
+<main>
+  <section aria-label="Buscar salas y consultar distancias">
+    <label for="query">Código o nombre de sala</label>
+    <input id="query" type="search" placeholder="Ej. ED113, AE213 o F203" autocomplete="off">
+    <p id="matches" role="status"></p>
+    <label for="rooms">Sala</label>
+    <select id="rooms"></select>
+    <label><input id="gates" type="checkbox" checked> Mostrar accesos vehiculares</label>
+    <div id="distances" aria-live="polite">
+      <h2>Distancia a pie</h2>
+      <p>Elige una sala para ver los bloques más cercanos.</p>
+    </div>
+  </section>
+  <figure>
+    <canvas id="campus" role="img" aria-label="Plano de San Joaquín con bloques, senderos y la ruta a la sala seleccionada"></canvas>
+    <figcaption>
+      <span class="key parking">● Estacionamiento</span> ·
+      <span class="key gate">▲ Acceso vehicular</span> ·
+      <span class="key room">● Sala</span> ·
+      <span class="key route">━ Ruta a pie</span>
+      <p>La línea punteada indica la conexión estimada entre un extremo y la red peatonal. La ruta dibujada corresponde al primer bloque con distancia a pie.</p>
+    </figcaption>
+  </figure>
+</main>
+<footer>
+  Ubicaciones de <a href="https://ubicate.uc.cl/?campus=SanJoaquin">Ubícate UC</a> ·
+  Red peatonal © <a href="https://www.openstreetmap.org/copyright">colaboradores de OpenStreetMap</a> ·
+  <a href="https://infraestructura.uc.cl/estacionamientos">Accesos y condiciones de Infraestructura UC</a> ·
+  <a href="distancias.csv" download>Descargar distancias CSV</a>
+</footer>
+<script id="map-data" type="application/json"><!-- DATOS_DEL_MAPA --></script>
+<script>
+  const data = JSON.parse(document.querySelector("#map-data").textContent);
+  const query = document.querySelector("#query");
+  const select = document.querySelector("#rooms");
+  const matches = document.querySelector("#matches");
+  const gates = document.querySelector("#gates");
+  const distances = document.querySelector("#distances");
+  const canvas = document.querySelector("#campus");
+  const ctx = canvas.getContext("2d");
+  const places = new Map(data.lugares.map(item => [item.properties.id, item]));
+  const byType = type => data.lugares.filter(item => item.properties.tipo === type);
+  const rooms = byType("sala").sort((a, b) =>
+    a.properties.nombre.localeCompare(b.properties.nombre, "es", {numeric: true}));
+  const boundary = byType("campus")[0];
+  const blocks = byType("bloque");
+  const normalize = value => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const outline = place => place.geometry.coordinates[0];
+  const point = place => {
+    if (place.geometry.type === "Point") return place.geometry.coordinates;
+    const vertices = outline(place).slice(0, -1);
+    return [0, 1].map(axis => vertices.reduce((sum, p) => sum + p[axis], 0) / vertices.length);
+  };
+
+  function filterRooms() {
+    const previous = select.value;
+    const term = normalize(query.value.trim());
+    const filtered = rooms.filter(({properties: p}) => normalize(p.nombre + " " + p.id).includes(term));
+    matches.textContent = filtered.length + (filtered.length === 1 ? " sala" : " salas");
+    select.replaceChildren(new Option("Selecciona una sala", ""));
+    for (const {properties: p} of filtered) {
+      const floor = p.pisos.length ? " · piso " + p.pisos.join("/") : "";
+      select.add(new Option(p.nombre + floor, p.id));
+    }
+    select.value = filtered.some(room => room.properties.id === previous) ? previous
+      : filtered.length === 1 ? filtered[0].properties.id : "";
+    update();
+  }
+
+  function draw() {
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    if (!width || !height) return;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    ctx.scale(ratio, ratio);
+    const scale = Math.min((width - 30) / 1120, (height - 30) / 750);
+    const project = ([lon, lat]) => [width / 2 + (lon + 70.611) * 92800 * scale,
+      height / 2 - (lat + 33.49865) * 111200 * scale];
+
+    function line(points, color, thickness, fill) {
+      ctx.beginPath();
+      points.forEach((coord, index) => {
+        const [x, y] = project(coord);
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      if (fill) {
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = thickness;
+      ctx.stroke();
+    }
+    function dot(coord, color, radius, triangle = false) {
+      const [x, y] = project(coord);
+      ctx.beginPath();
+      if (triangle) {
+        ctx.moveTo(x, y - radius);
+        ctx.lineTo(x + radius, y + radius);
+        ctx.lineTo(x - radius, y + radius);
+        ctx.closePath();
+      } else ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+    line(outline(boundary), "#799080", 1.5, "#edf0e4");
+    for (const way of data.vias) line(way, "#bec9bb", .85);
+    for (const building of byType("edificio")) {
+      if (building.geometry.type === "Polygon") line(outline(building), "#9eac9f", 1, "#d7dfd2");
+      else dot(point(building), "#9eac9f", 2);
+    }
+    for (const room of rooms) dot(point(room), "#a4afa5", 1.2);
+    if (gates.checked) {
+      for (const gate of byType("acceso_vehicular")) dot(point(gate), "#9a4806", 4, true);
+    }
+    const route = data.resultados[select.value]?.find(row => row.metodo === "peatonal")?.ruta;
+    if (route?.length) {
+      line(route.slice(1, -1), "#006948", 3);
+      ctx.setLineDash([3, 4]);
+      line(route.slice(0, 2), "#006948", 2);
+      line(route.slice(-2), "#006948", 2);
+      ctx.setLineDash([]);
+    }
+    for (const block of blocks) {
+      if (block.geometry.type === "Polygon") line(outline(block), "#176b78", 1.5, "#80bec070");
+      else dot(point(block), "#176b78", 5);
+      const [x, y] = project(point(block));
+      ctx.font = "bold 11px system-ui";
+      ctx.textAlign = "center";
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 3;
+      const code = ["1", "2", "ING", "DEP", "3", "4", "5", "INN", "UCX", "CyT"][Number(block.properties.id.split("-")[1])];
+      ctx.strokeText(code, x, y - 8);
+      ctx.fillStyle = "#0d4b55";
+      ctx.fillText(code, x, y - 8);
+    }
+    if (select.value) dot(point(places.get(select.value)), "#a12758", 6);
+  }
+
+  function update() {
+    const selected = places.get(select.value);
+    if (!selected) {
+      distances.replaceChildren();
+      const prompt = document.createElement("p");
+      prompt.textContent = "Elige una sala para ver los bloques más cercanos.";
+      distances.append(prompt);
+      draw();
+      return;
+    }
+    distances.replaceChildren();
+    const rows = data.resultados[select.value];
+    for (const [method, title] of [["peatonal", "Distancia a pie"], ["linea_recta", "Estimaciones en línea recta"]]) {
+      const subset = rows.filter(row => row.metodo === method);
+      if (method === "linea_recta" && !subset.length) continue;
+      const heading = document.createElement("h2");
+      heading.textContent = title;
+      distances.append(heading);
+      if (!subset.length) {
+        const note = document.createElement("p");
+        note.textContent = "La red disponible no conecta esta sala con los bloques.";
+        distances.append(note);
+        continue;
+      }
+      const list = document.createElement("ol");
+      for (const row of subset) {
+        const block = places.get(row.bloque).properties;
+        const item = document.createElement("li");
+        const title = document.createElement("strong");
+        title.textContent = block.nombre + " · " + row.metros + " m";
+        const detail = document.createElement("small");
+        const quality = {inferida: "inferida", entrada_osm: "entrada cartografiada"};
+        detail.textContent = method === "peatonal"
+          ? "Conexión del bloque " + quality[row.conexion_bloque] + " · sala " + quality[row.conexion_sala] + ". " + block.acceso
+          : block.acceso;
+        item.append(title, document.createElement("br"), detail);
+        list.append(item);
+      }
+      distances.append(list);
+    }
+    draw();
+  }
+
+  query.addEventListener("input", filterRooms);
+  select.addEventListener("change", update);
+  gates.addEventListener("change", draw);
+  new ResizeObserver(draw).observe(canvas);
+  filterRooms();
+</script>
+</html>

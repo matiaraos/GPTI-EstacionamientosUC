@@ -4,13 +4,13 @@
 
 La Dirección de Campus puede configurar la oferta de plazas y administrar quién tiene acceso a las preferentes. Este inventario alimenta la asignación diaria.
 
-## 02A · Catálogo ficticio
+## 02A · Catálogo geográfico y plazas de prueba
 
-**Base y dependencias** · 01A y migración inicial de zonas.
+**Base y dependencias** · 01A y migración inicial de zonas. Usar el [catálogo de San Joaquín](../campus-san-joaquin/README.md) como fuente geográfica.
 
-**Entrega** · API y PostgreSQL con una zona ficticia, edificios identificables por ID y nombre, plazas regulares activas, horarios de prueba y un QR identificable por plaza. Compartir con 03A un catálogo de destinos con ID y nombre. Usar datos reproducibles para integración y demo.
+**Entrega** · Cargar los bloques, salas y edificios del GeoJSON con sus identificadores de origen. Cargar el CSV como una distancia por par de bloque y sala, conservando metros, método y calidad de las conexiones. Para los edificios habilitados como destinos de la demo, generar distancias con la misma red y reglas usando sus ubicaciones publicadas. La API comparte con 03A los destinos con ID, nombre y tipo (`sala` o `edificio`). Habilitar al menos dos bloques con plazas regulares, horarios y QR de prueba para demostrar el cambio de bloque cuando se agotan los cupos del primero.
 
-**Aceptación** · La app puede consultar destinos y la API identifica la plaza correcta a partir de su QR. Un destino inexistente se rechaza. La carga repetida de los datos de demo no duplica plazas.
+**Aceptación** · Cargar el catálogo dos veces conserva los identificadores y evita duplicados. Salas con el mismo nombre conservan IDs distintos. Un acceso vehicular queda fuera de los bloques reservables. La app puede consultar los destinos y la API identifica la plaza de prueba correcta a partir de su QR.
 
 ## 02B · Inventario y autorizaciones
 
@@ -20,4 +20,4 @@ La Dirección de Campus puede configurar la oferta de plazas y administrar quié
 
 **Aceptación** · Una cuenta común no puede cambiar inventario ni autorizaciones. Una plaza bloqueada o inactiva queda excluida de nuevas asignaciones. Se distinguen plazas regulares y preferentes. Una habilitación revocada o vencida deja de ser válida y el flujo no solicita certificados ni motivos médicos.
 
-**Pendiente para piloto** · Confirmar inventario, horarios y ubicación de las plazas preferentes.
+**Pendiente para piloto** · Confirmar qué bloques se habilitarán, su inventario, horarios, permisos, salidas peatonales y ubicación de las plazas preferentes.

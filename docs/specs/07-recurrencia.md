@@ -10,7 +10,7 @@ El usuario elegible puede fijar bloques semanales, cancelar una fecha o una seri
 
 **Entrega** · Usar un umbral y límites de bloques configurables en pruebas.
 
-- Desde la app y la API, registrar la serie y sus ocurrencias con el mismo control de conflictos que una reserva diaria. Aplicar un máximo del 30 % de las plazas de la zona piloto, incluso al crear o renovar en paralelo.
+- Desde la app y la API, registrar la serie y sus ocurrencias con el mismo orden de cercanía por bloque y control de conflictos que una reserva diaria. Aplicar un máximo del 30 % de las plazas de la zona piloto, incluso al crear o renovar en paralelo.
 - Revisar el cumplimiento automáticamente el fin de semana antes de renovar. Una ausencia revoca el beneficio y libera la plaza correspondiente según SC-001. Cancelar una fecha conserva la serie y cancelar la serie libera las ocurrencias futuras.
 
 **Aceptación**
