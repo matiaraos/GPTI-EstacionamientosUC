@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.expo/
+*.tsbuildinfo
+coverage/
+.env
+.env.*
+!.env.example
+apps/api/src/generated/
+/apps/mobile/android/
+/apps/mobile/ios/
+*:Zone.Identifier

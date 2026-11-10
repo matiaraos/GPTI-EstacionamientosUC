@@ -1,0 +1,14 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ParkingZone {
+  id     Int     @id @default(autoincrement())
+  name   String
+  active Boolean @default(true)
+}

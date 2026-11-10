@@ -1,0 +1,42 @@
+name: Verificación
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build -w @miestacionamientouc/admin
+      - name: Exportar bundles de Android e iOS
+        working-directory: apps/mobile
+        env:
+          EXPO_NO_TELEMETRY: "1"
+        run: npx --no-install expo export --platform android --platform ios
+      - name: Verificar readiness con PostgreSQL
+        env:
+          DATABASE_URL: postgresql://estacionamientos:estacionamientos_dev@127.0.0.1:5433/estacionamientos
+        run: |
+          docker compose up -d --wait db
+          node apps/api/dist/server.js &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+
+          curl --fail --silent --show-error --retry 10 --retry-connrefused \
+            --retry-delay 1 --max-time 5 http://localhost:3000/health
+          test "$(curl --silent --show-error --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:3000/ready)" = 503
+
+          npm run db:deploy
+          test "$(curl --silent --show-error --max-time 5 -o /dev/null -w '%{http_code}' http://localhost:3000/ready)" = 200

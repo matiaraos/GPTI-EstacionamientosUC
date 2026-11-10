@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "MiEstacionamientoUC",
+    "slug": "miestacionamientouc",
+    "scheme": "miestacionamientouc",
+    "version": "0.1.0",
+    "platforms": ["android", "ios"],
+    "ios": { "bundleIdentifier": "cl.uc.miestacionamiento" },
+    "android": { "package": "cl.uc.miestacionamiento" },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite usar la cámara para leer el código QR de la plaza.",
+          "recordAudioAndroid": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permite usar tu ubicación al registrar la llegada a la zona piloto."
+        }
+      ],
+      "expo-notifications",
+      "expo-secure-store"
+    ]
+  }
+}
