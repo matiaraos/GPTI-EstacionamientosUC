@@ -10,7 +10,7 @@ Base del MVP para gestionar estacionamientos del Campus San Joaquín. La app mó
 | `tests/load` | Prueba básica de disponibilidad con k6. |
 | `docs/Entregas` | Documentos fuente de las entregas 2 y 3. |
 
-Consulta el [alcance y las decisiones técnicas](docs/alcance.md) para ver la relación entre las entregas y los flujos pendientes.
+Consulta el [alcance y las decisiones técnicas](docs/alcance.md) para ver la relación entre las entregas y los flujos pendientes. El [índice de specs](docs/specs/README.md) organiza la implementación del MVP por feature.
 
 ## Desarrollo local
 
