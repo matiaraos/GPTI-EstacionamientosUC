@@ -4,19 +4,20 @@
 
 Desde la app, un usuario puede solicitar una plaza, ver su confirmación, cancelarla antes del check-in o entrar en lista de espera cuando se agotan los cupos.
 
-## Implementación
+## 04A · Reserva diaria
 
-- La API filtra plazas habilitadas y libres durante todo el intervalo. Selecciona por cercanía a la primera clase, usa la última como desempate y usa el destino declarado si no hay clases. Entre solicitudes simultáneas se aplica ranking descendente y luego antigüedad. El puntaje inicial sirve hasta que la spec 05 habilite los ajustes por uso.
-- Confirmar en una transacción. Impedir solapamientos por plaza, cuenta y patente, y devolver la reserva existente ante un reintento de la misma operación. La salida queda excluida del intervalo.
-- Permitir cancelar antes del check-in y procesar la espera cuando se libera capacidad compatible. Exigir consentimiento para entrar a la lista. Si falla un cambio de reserva, conservar la confirmación anterior. La spec 06 agrega la entrega de avisos.
+**Base y dependencias** · 01A, 02A y 03A.
 
-## Aceptación
+**Entrega** · La app solicita y muestra la reserva o la falta de cupo. La API elige una plaza regular habilitada y libre durante todo el intervalo de prueba, usando el orden de cercanía del catálogo ficticio. Confirmar de forma transaccional y permitir cancelación antes del check-in. La salida queda excluida del intervalo.
 
-- La plaza se ajusta al intervalo, la cercanía y la autorización. El usuario sin habilitación vigente nunca recibe una plaza preferente.
-- Sin cupo, se informa la situación y se ofrece la espera o una zona habilitada con disponibilidad. Cuando se libera cupo, se respeta ranking y antigüedad.
-- Con solicitudes concurrentes no hay dobles reservas. Dos intervalos contiguos pueden reservar la misma plaza. Repetir una solicitud confirmada no consume otro cupo.
-- La prueba de carga del flujo de asignación verifica el máximo de cinco segundos con 50 usuarios concurrentes.
+**Aceptación** · Una solicitud válida muestra plaza, horario y confirmación. Sin cupo, se informa sin crear una reserva. Cancelar libera el intervalo. Con PostgreSQL real, comprobar que solicitudes concurrentes no solapan plaza, cuenta ni patente, que se admiten intervalos contiguos y que el reintento de una solicitud confirmada devuelve la misma reserva.
 
-## Decisiones abiertas
+## 04B · Asignación completa y espera
 
-Definir cómo se mide la cercanía en el catálogo y qué mecanismo agrupa solicitudes simultáneas antes de programar la prioridad. Validar ambos con escenarios reproducibles.
+**Base y dependencias** · 02B, 03B, 04A y 05B.
+
+**Entrega** · Usar cercanía a la primera clase, la última como desempate y el destino declarado si no hay clases. Ordenar solicitudes simultáneas por ranking descendente y antigüedad. Las cuentas con autorización vigente pueden optar por plazas preferentes y regulares. Permitir cambios sin perder la reserva original si falla la alternativa. Ofrecer espera con consentimiento o una zona habilitada disponible y procesar la espera al liberar capacidad compatible.
+
+**Aceptación** · Se respeta cercanía, ranking, antigüedad y vigencia de la autorización. Una alternativa fallida conserva la reserva anterior. Una liberación atiende al siguiente candidato compatible. PP-25 comprueba el máximo de cinco segundos con 50 usuarios concurrentes.
+
+**Pendiente de producto** · Confirmar la fuente de distancias del piloto y la ventana que define solicitudes simultáneas antes de verificar la prioridad de 04B.

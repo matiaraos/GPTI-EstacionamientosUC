@@ -4,18 +4,22 @@
 
 La persona registra llegada y salida escaneando el QR de su plaza. La app muestra el estado de la reserva y el historial de cumplimiento.
 
-## Implementación
+## 05A · Entrada y salida QR
 
-- La app escanea el QR y pide ubicación para registrar la llegada. La API comprueba sesión, plaza, reserva vigente, ventana horaria y, en check-in, presencia dentro de la zona piloto. Usar la hora del servidor.
-- Registrar entrada, salida, ausencia o vencimiento con estados diferenciados. Un check-out confirmado libera capacidad. El cierre por vencimiento libera capacidad lógica y conserva los bloqueos por incidentes verificados.
-- Aplicar el ajuste de ranking una vez por hecho y conservar historial, motivo y reserva. Las rectificaciones administrativas requieren justificación.
+**Base y dependencias** · 02A y 04A.
 
-## Aceptación
+**Entrega** · App con cámara y solicitud de ubicación para la llegada. La API valida sesión, reserva, QR, plaza y ventana horaria, y en el check-in comprueba el perímetro de prueba. Usa el reloj del servidor. El check-in marca la plaza en uso y el check-out la libera. Configurar perímetro y tolerancias de demo con datos ficticios.
 
-- Se rechaza QR de otra plaza, revocado o ilegible. Se rechaza check-in fuera de zona o de tolerancia. Un error de lectura permite reintentar sin sanción.
-- El check-in válido marca la plaza en uso. El check-out válido la libera. Repetir cualquiera de los dos no duplica eventos ni ajustes.
-- Las tareas de vencimiento distinguen ausencia y salida no registrada. Una sanción por mal uso exige validación administrativa.
+**Aceptación** · Un QR correcto permite entrada y salida en el emulador o dispositivo. Se rechazan QR ajenos, revocados o ilegibles y check-ins fuera de zona o ventana. Una lectura fallida permite reintentar. Repetir una operación confirmada no duplica eventos.
 
-## Decisiones abiertas
+**Pendiente para piloto** · Confirmar perímetro y tolerancias propuestas de 15 minutos para llegada y 10 para salida.
 
-Confirmar el perímetro del piloto, las tolerancias propuestas de 15 minutos para llegada y 10 para salida, y la tabla de ajustes y niveles de RN-06/RN-07 antes de fijar pruebas operativas.
+## 05B · Vencimientos y ranking
+
+**Base y dependencias** · 05A.
+
+**Entrega** · Distinguir ausencia, vencimiento y salida registrada. Liberar capacidad lógica en el vencimiento y conservar bloqueos por incidentes verificados cuando exista 08A. Mostrar puntaje e historial con motivo y reserva. Exponer rectificaciones justificadas a través de una operación administrativa.
+
+**Aceptación** · Una ausencia o un vencimiento genera el estado y ajuste correctos una sola vez. Una salida a tiempo queda diferenciada. Un error de lectura no sanciona y el mal uso requiere validación administrativa.
+
+**Pendiente para piloto** · Confirmar la tabla de ajustes y niveles RN-06 y RN-07.

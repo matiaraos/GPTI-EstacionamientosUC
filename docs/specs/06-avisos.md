@@ -4,17 +4,21 @@
 
 El usuario recibe el resultado de su solicitud o cambio de reserva y recordatorios al finalizar su última clase y al llegar la hora de salida declarada.
 
-## Implementación
+## 06 · Avisos
+
+**Base y dependencias** · 04B y 05B. Extender los eventos de reserva y check-out con avisos.
+
+**Entrega** · Usar un canal local de prueba para la verificación.
 
 - Registrar el resultado de la reserva antes de enviar la confirmación o el aviso de cambio. Incluir fecha, horario y plaza cuando corresponda. Usar notificaciones de la app y correo institucional como canal alternativo.
 - Programar recordatorios al finalizar la última clase y al llegar la salida declarada. Para usuarios sin clases, usar la permanencia declarada. Si coinciden, enviar uno. Cancelar los pendientes al cancelar la reserva o completar el check-out.
 - Permitir consultar el estado de la reserva si la entrega del aviso falla.
 
-## Aceptación
+**Aceptación**
 
 - Confirmación, cancelación, cambio y falta de disponibilidad se comunican según el resultado real.
 - Fallas y reintentos de envío no cambian ni duplican la reserva. Un recordatorio cancelado no se entrega después del check-out.
 
-## Decisión abierta
+**Pendiente para piloto**
 
 Confirmar los proveedores y probar la entrega en un dispositivo del piloto antes de dar por verificado el canal.

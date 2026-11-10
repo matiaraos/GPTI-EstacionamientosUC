@@ -4,18 +4,20 @@
 
 El personal autorizado consulta ocupación, resuelve incidentes y obtiene un reporte agregado del piloto.
 
-## Implementación
+## 08A · Ocupación e incidentes
 
-- Desde el panel y la API, mostrar plazas libres, reservadas, en uso y bloqueadas. Diferenciar salida registrada, vencimiento e incidente pendiente de verificación. Registrar las resoluciones con responsable y motivo.
-- Reportar participantes, asignaciones con horario, errores, disponibilidad y satisfacción, con período y denominadores. Separar simulación de medición real y conservar solo resultados anónimos al cierre según el DRS.
+**Base y dependencias** · 02B y 05A.
 
-## Aceptación
+**Entrega** · Panel y API para mostrar plazas libres, reservadas, en uso y bloqueadas. Distinguir salida registrada, vencimiento cuando exista 05B e incidente pendiente. Registrar resoluciones con responsable y motivo.
 
-- Los totales del panel coinciden con los eventos y las reservas del período consultado. Un incidente sin validar no sanciona al usuario.
-- Registrar evidencia de la meta del piloto de al menos 50 usuarios, al menos 90 % de asignaciones con horario, satisfacción de al menos 80 %, disponibilidad superior al 95 %, errores de asignación inferiores al 5 % y cero dobles reservas.
-- Verificar el flujo completo en Android e iOS. Medir aparte el objetivo de al menos 95 % de escaneos exitosos al primer intento (PP-15). El porcentaje de reservas con check-in corresponde a una métrica distinta.
-- Confirmar el proceso de eliminación de datos identificables y que el reporte final conserve solo datos agregados.
+**Aceptación** · Los totales coinciden con eventos y reservas del período. Una cuenta común recibe rechazo. Un incidente sin validar no genera una sanción.
 
-## Decisiones abiertas
+## 08B · Indicadores y cierre del piloto
 
-Confirmar la zona, inventario y señalética, período de monitoreo, forma de reclutamiento y quién custodia la evidencia del piloto.
+**Base y dependencias** · 01B, 07 y 08A, junto con sus dependencias.
+
+**Entrega** · Reporte agregado con período y denominadores para participantes, asignaciones con horario, errores, disponibilidad y satisfacción. Distinguir simulación y medición real. Eliminar datos identificables al cierre y conservar solo resultados anónimos.
+
+**Aceptación** · Comprobar las metas de al menos 50 usuarios, al menos 90 % de asignaciones con horario, satisfacción de al menos 80 %, disponibilidad superior al 95 %, errores de asignación inferiores al 5 % y cero dobles reservas. Verificar el flujo en Android e iOS. Medir por separado el objetivo de al menos 95 % de lecturas QR al primer intento (PP-15). Una simulación debe quedar identificada y no acreditar las metas del piloto real. Verificar el cierre de datos con registros ficticios antes del piloto.
+
+**Pendiente para piloto** · Confirmar zona, señalética, período de monitoreo, reclutamiento y responsable de la evidencia.

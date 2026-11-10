@@ -4,18 +4,22 @@
 
 Un integrante de la comunidad UC puede registrar su cuenta y patente, iniciar y cerrar sesión, y recuperar el acceso por correo institucional. El panel exige un rol administrativo autorizado.
 
-## Implementación
+## 01A · Acceso y base visual
 
-- Incorporar registro, acceso, recuperación y cierre de sesión en la app móvil. Guardar las credenciales de sesión en almacenamiento seguro.
-- En la API, validar correo institucional y formato chileno de patente, registrar cuenta y vehículo en una operación, almacenar el hash de la contraseña, validar sesiones y roles, y emitir enlaces de recuperación temporales y de un solo uso.
-- Incorporar inicio de sesión administrativo en el panel. La API verifica el rol en cada operación protegida y limita a los usuarios finales a sus propios recursos.
+**Base y dependencias** · Monorepo con app Expo, panel React y API Express de diagnóstico.
 
-## Aceptación
+**Entrega** · App con registro, inicio y cierre de sesión y almacenamiento seguro. Panel con acceso administrativo. API con roles, hash de contraseña y registro atómico de cuenta y patente chilena. Usar un dominio ficticio configurable y un administrador de prueba provisionado localmente. En la primera pantalla, definir colores, tipografía y espaciado y extraer solo los componentes que necesita ese flujo.
 
-- Un registro válido crea la cuenta con su patente. Correo externo o duplicado y patente inválida se rechazan sin crear registros parciales.
-- Credenciales inválidas reciben un error que no identifica cuál dato falló. Una cuenta común recibe rechazo al llamar directamente a una operación administrativa.
-- Cerrar sesión invalida el acceso de esa sesión. Un enlace de recuperación vencido o reutilizado se rechaza.
+**Aceptación** · Un registro válido permite iniciar sesión. Un correo externo o duplicado y una patente inválida se rechazan sin registros parciales. Credenciales incorrectas reciben un error genérico. Cerrar sesión invalida el acceso de esa sesión y la API rechaza operaciones administrativas de cuentas comunes. En móvil, los campos y la acción principal siguen accesibles con teclado abierto.
 
-## Decisiones abiertas
+**Pendiente para piloto** · Confirmar dominios y procedimiento para habilitar a los primeros administradores antes de usar cuentas reales.
 
-Confirmar los dominios institucionales habilitados y cómo se habilitará a los primeros administradores. Confirmar el proveedor de correo y la vigencia del enlace antes de validar recuperación con correo real.
+## 01B · Recuperación por correo
+
+**Base y dependencias** · 01A.
+
+**Entrega** · Extender la app y la API con solicitud y confirmación de recuperación. Usar un canal de prueba y una vigencia configurable para validar el flujo localmente.
+
+**Aceptación** · Un enlace válido permite cambiar la contraseña una vez. Enlaces vencidos o reutilizados se rechazan y una solicitud para un correo desconocido recibe la misma respuesta pública.
+
+**Pendiente para piloto** · Confirmar proveedor de correo, vigencia y entrega real.
