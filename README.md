@@ -64,10 +64,4 @@ El script k6 requiere una API local con la migración aplicada. Las pruebas PP-2
 
 ## Skills de GitHub
 
-Usa estas referencias según la tarea.
-
-| Área | Skills | Uso |
-| --- | --- | --- |
-| App móvil | [Expo Skills](https://github.com/expo/skills) | `expo-overview`, `expo-project-structure` y `expo-router` para estructura y navegación. `expo-dev-client` para compilaciones locales y `expo-data-fetching` para las consultas a la API. |
-| Panel web | [Vercel Agent Skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) | `vercel-react-best-practices` para componentes, carga de datos y tamaño del bundle en React/Vite. |
-| API y base de datos | [Prisma Skills](https://github.com/prisma/skills) · [Supabase Agent Skills](https://github.com/supabase/agent-skills/tree/main/skills/supabase-postgres-best-practices) | `prisma-cli` y `prisma-client-api` para migraciones y consultas con Prisma 7. `supabase-postgres-best-practices` para índices y transacciones al implementar asignaciones concurrentes. |
+Consulta [SKILLS.md](SKILLS.md) para ver las skills de Expo, Vercel, Prisma y Supabase y cuándo usar cada una.
