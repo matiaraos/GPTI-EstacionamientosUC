@@ -25,11 +25,16 @@ function useDebounced(value: string, ms: number) {
 
 /** Busca una sala o un edificio por código o nombre y lo deja en la solicitud. */
 export default function ElegirDestinoScreen() {
+  const { actualizar } = useSolicitud();
+  return <BuscadorDestinos onElegir={(destino) => actualizar({ destino })} />;
+}
+
+/** Buscador de destinos del catálogo. Al elegir, llama a `onElegir` y vuelve a la pantalla anterior. */
+export function BuscadorDestinos({ onElegir, inicial = "" }: { onElegir: (destino: Destino) => void; inicial?: string }) {
   const router = useRouter();
   const { colors } = useTheme();
   const { token } = useSession();
-  const { actualizar } = useSolicitud();
-  const [texto, setTexto] = useState("");
+  const [texto, setTexto] = useState(inicial);
   const q = useDebounced(texto.trim(), 250);
 
   const resultados = useQuery({
@@ -40,7 +45,7 @@ export default function ElegirDestinoScreen() {
   });
 
   const elegir = (destino: Destino) => {
-    actualizar({ destino });
+    onElegir(destino);
     router.back();
   };
 

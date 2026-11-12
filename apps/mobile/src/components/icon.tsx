@@ -34,6 +34,7 @@ const ICONOS = {
   cancel: { ios: "xmark.circle", android: "cancel" },
   key: { ios: "key", android: "key" },
   link: { ios: "link", android: "link" },
+  import: { ios: "square.and.arrow.down", android: "file_open" },
 } as const;
 
 export type IconName = keyof typeof ICONOS;

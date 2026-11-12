@@ -11,7 +11,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | Verificada · [evidencia](#05a--evidencia) |
 | Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | En curso · [evidencia](#01b--evidencia) |
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Verificada · [evidencia](#02b--evidencia) |
-| Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | Pendiente |
+| Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | En curso · [evidencia](#03b--evidencia) |
 | Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | Pendiente |
 | Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | Pendiente |
 | Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Pendiente |
@@ -135,3 +135,17 @@ Rama `tramo/02b-inventario`. Pruebas en `apps/api/test/inventario.test.js` contr
 | Panel | Compilación | `tsc` y `vite build` pasan. No se recorrió en navegador. |
 
 **Pendiente para piloto** · Confirmar bloques habilitados, inventario, horarios, permisos, salidas peatonales y ubicación de las plazas preferentes. 04B aplica las habilitaciones a la asignación.
+
+### 03B · Evidencia
+
+Rama `tramo/03b-horario`. Pruebas en `apps/api/test/horario.test.js` contra PostgreSQL real con el calendario de prueba `apps/api/test/fixtures/horario.ics`. `BloqueClase` impide solapes del mismo día con `EXCLUDE USING gist` sobre `int4range`.
+
+| Criterio | Estado | Evidencia (API) |
+| --- | --- | --- |
+| Los bloques persisten al reabrir la app | Verificado (API) | El horario vive en la API (`GET/PUT /horario`, `POST/PATCH/DELETE /horario/bloques`); se lee igual desde otra sesión. Cada cuenta ve y edita solo el suyo. |
+| Bloques inválidos y archivos ilegibles se informan sin perder el horario anterior | Verificado (API) | `PUT /horario` valida todo antes de reemplazar: término anterior al inicio, destino inexistente y solapes se informan por bloque (`bloques.N.campo`) y el horario previo queda igual. Un archivo sin calendario o sin eventos responde `archivo_ilegible`. |
+| Importar un archivo de prueba permite revisar los bloques antes de guardar | Verificado (API) | `POST /horario/importar` no guarda: expande `BYDAY` (lunes y miércoles), marca «ED113» con dos coincidencias (`ED113` y `ED113-SJ`) y una sala inexistente para elegir destino, y omite el evento de día completo. Tras elegir, `PUT /horario` guarda los cuatro bloques. |
+| Editar el horario conserva la reserva confirmada | Verificado (API) | Reemplazar el horario deja la reserva `confirmada` con su destino e intervalo. El cambio de reserva se completa en 04B. |
+| App: horario, editor e importación | Compilación | Cuenta → Mi horario: bloques por día, editor con día, horas y destino, e importación con `expo-document-picker` y vista previa donde se elige el destino de los bloques dudosos y se agrega o reemplaza el horario. `tsc` y `expo export` pasan. **Pendiente**: recorrer el flujo en el teléfono. |
+
+**Pendiente para piloto** · Validar un `.ics` representativo y el mapeo de sus ubicaciones. Una integración directa con sistemas UC requiere autorización.
