@@ -18,7 +18,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
+      - name: Levantar PostgreSQL
+        run: docker compose up -d --wait db
+      - name: Ejecutar pruebas (usa la base estacionamientos_test)
+        run: npm test
       - run: npm run build -w @miestacionamientouc/admin
       - name: Exportar bundles de Android e iOS
         working-directory: apps/mobile
@@ -29,7 +32,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://estacionamientos:estacionamientos_dev@127.0.0.1:5433/estacionamientos
         run: |
-          docker compose up -d --wait db
           node apps/api/dist/server.js &
           api_pid=$!
           trap 'kill "$api_pid" 2>/dev/null || true' EXIT
