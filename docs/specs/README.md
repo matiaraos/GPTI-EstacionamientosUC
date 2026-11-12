@@ -4,11 +4,11 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 
 | Etapa | Tramo | Alcance | Requisitos | Depende de | Estado |
 | --- | --- | --- | --- | --- | --- |
-| Acceso y datos | [01A](01-cuentas.md#01a--acceso-y-base-visual) | Acceso y base visual | RF-01–02 | Base del repo | En curso · [evidencia](#01a--evidencia) |
+| Acceso y datos | [01A](01-cuentas.md#01a--acceso-y-base-visual) | Acceso y base visual | RF-01–02 | Base del repo | Verificada · [evidencia](#01a--evidencia) |
 | Acceso y datos | [02A](02-inventario.md#02a--catálogo-geográfico-y-plazas-de-prueba) | Catálogo de la demo | RF-18 | 01A | Verificada · [evidencia](#02a--evidencia) |
-| Acceso y datos | [03A](03-horarios.md#03a--destino-y-permanencia) | Destino y permanencia | RF-05 | 01A | En curso · [evidencia](#03a--evidencia) |
-| Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | En curso · [evidencia](#04a--evidencia) |
-| Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | En curso · [evidencia](#05a--evidencia) |
+| Acceso y datos | [03A](03-horarios.md#03a--destino-y-permanencia) | Destino y permanencia | RF-05 | 01A | Verificada · [evidencia](#03a--evidencia) |
+| Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | Verificada · [evidencia](#04a--evidencia) |
+| Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | Verificada · [evidencia](#05a--evidencia) |
 | Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | Pendiente |
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Pendiente |
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | Pendiente |
@@ -39,9 +39,9 @@ Rama `tramo/01a-acceso` (sobre `tramo/00-base`).
 | Credenciales incorrectas reciben un error genérico | Verificado (API) | Contraseña incorrecta y correo desconocido devuelven el mismo cuerpo `401 credenciales_invalidas`; una cuenta desactivada también. |
 | Cerrar sesión invalida el acceso de esa sesión | Verificado (API) | `DELETE /auth/sesion` revoca solo esa sesión; otra sesión de la misma cuenta sigue válida. También se rechazan sesiones vencidas y tokens inventados. |
 | La API rechaza operaciones administrativas de cuentas comunes | Verificado (API) | `GET /admin/cuentas` responde `403 acceso_denegado` a un usuario y `200` al administrador provisionado con `npm run db:seed`. |
-| En móvil, campos y acción principal accesibles con teclado abierto | Pendiente de dispositivo | Formularios dentro de `FormScreen` (`KeyboardAvoidingView` + `ScrollView` con `keyboardShouldPersistTaps`). Falta probarlo en Android/iOS. |
-| App: registro, inicio y cierre de sesión con almacenamiento seguro | Pendiente de dispositivo | Token en `expo-secure-store`, compuerta de hidratación y `Stack.Protected`. Compilación: `tsc` y `expo export` para Android e iOS sin errores. |
-| Panel con acceso administrativo | Pendiente de navegador | Inicio de sesión que rechaza cuentas sin rol `admin`, guardia de rutas y listado de cuentas. Compilación: `npm run build -w @miestacionamientouc/admin`. |
+| En móvil, campos y acción principal accesibles con teclado abierto | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: la prueba detectó que el botón quedaba tapado en Android edge-to-edge; se corrigió con `KeyboardAwareScrollView` (PR #7) y se confirmó con el teclado abierto. Pendiente en iOS. |
+| App: registro, inicio y cierre de sesión con almacenamiento seguro | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: errores por campo de correo externo y patente inválida sin perder lo escrito, registro válido, sesión conservada al cerrar y reabrir la app, cierre de sesión y error genérico con contraseña incorrecta. |
+| Panel con acceso administrativo | Verificado (navegador) | Inicio de sesión del administrador de prueba y listado con las cuentas creadas en el teléfono. La prueba detectó una página en blanco por dos copias de React, corregida en PR #7 y comprobada con Edge sin interfaz. |
 
 **Pendiente para piloto** · Confirmar dominios institucionales y el procedimiento para habilitar a los primeros administradores. El seed solo crea un administrador local de prueba.
 
@@ -70,8 +70,8 @@ Rama `tramo/03a-destino`. Pruebas en `apps/api/test/visitas.test.js` contra Post
 | Un destino válido y una salida posterior a la llegada permiten preparar la solicitud | Verificado (API) | `POST /visitas/validar` devuelve el destino y el intervalo `[inicio, fin)` en UTC para salas y edificios. |
 | Falta de destino, ID inexistente o intervalo inválido muestran el error | Verificado (API) | Errores por campo (`destinoId`, `fecha`, `llegada`, `salida`), varios a la vez si corresponde. |
 | Zona horaria de Santiago consistente | Verificado (API) | Conversión en horario de verano e invierno, hora inexistente del 6 de septiembre de 2026 rechazada y hora repetida del 4 de abril resuelta a la primera ocurrencia. La app envía horas de pared de Santiago y la API las convierte. |
-| Buscar por código o nombre y enviar el ID del registro | Pendiente de dispositivo | Pantalla «Elegir destino» con búsqueda en `GET /destinos`; muestra el ID de origen para distinguir homónimos y envía el ID interno. |
-| Conservar los datos ingresados tras un error | Pendiente de dispositivo | El borrador vive en `SolicitudProvider` mientras la sesión está abierta; los errores se muestran junto a cada campo. Compilación: `tsc` y `expo export` sin errores. |
+| Buscar por código o nombre y enviar el ID del registro | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: «ed113» muestra los dos registros distinguidos por `ED113` y `ED113-SJ`; la reserva quedó con el destino elegido. |
+| Conservar los datos ingresados tras un error | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: una salida anterior a la llegada muestra el error bajo «Salida» y conserva destino y horario. |
 
 ### 04A · Evidencia
 
@@ -88,7 +88,7 @@ Rama `tramo/04a-reserva`. Pruebas en `apps/api/test/reservas.test.js` contra Pos
 | Concurrencia sin solapes por plaza, cuenta ni patente | Verificado (PostgreSQL) | 9 cuentas simultáneas: 5 reservas en plazas distintas y 4 `sin_cupo`. Tres solicitudes simultáneas de una cuenta: una confirmada. Inserciones directas en la base que solapan plaza o vehículo se rechazan (23P01). |
 | Intervalos contiguos admitidos | Verificado (PostgreSQL) | 09:00–12:00 y 12:00–14:00 en la misma plaza y cuenta. |
 | El reintento devuelve la misma reserva | Verificado (API) | Misma `Idempotency-Key`: `200` con la misma reserva, también con 6 reintentos simultáneos; la clave con otros datos se rechaza. Probado además con `curl` contra la API local (reserva, reintento y cancelación). |
-| App: bloque, plaza, horario y distancia, o falta de cupo | Pendiente de dispositivo | Pantalla «Reservar» con resultado y pestaña «Mi reserva» con cancelación. Compilación: `tsc` y `expo export` sin errores. |
+| App: bloque, plaza, horario y distancia, o falta de cupo | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: reservas para ED113-SJ confirmadas en A1 y A2 del Est. Subterráneo Centro de innovación con su horario y distancia a pie. La falta de cupo y la cancelación se verificaron en la API; en el teléfono no se ejercitaron. |
 
 ### 05A · Evidencia
 
@@ -103,6 +103,6 @@ Rama `tramo/05a-qr`. Pruebas en `apps/api/test/uso.test.js` contra PostgreSQL re
 | Repetir una operación confirmada no duplica eventos | Verificado (API) | Entrada repetida responde 200 con el mismo evento; cinco salidas simultáneas dejan un solo evento. Único `(reservaId, tipo)`. |
 | Ocupación real: un uso activo por plaza, cuenta y vehículo | Verificado (PostgreSQL) | Índices únicos parciales sobre `estado = 'en_uso'`: si la reserva anterior sigue en uso, el check-in siguiente en esa plaza responde `plaza_ocupada`. |
 | Coordenadas personales fuera del historial | Verificado (diseño) | `EventoReserva` guarda tipo, QR y hora; la ubicación solo se usa para validar. |
-| Flujo en emulador o dispositivo | Pendiente de dispositivo | Escáner con `expo-camera`, ubicación con `expo-location` e ingreso manual del código impreso. El panel imprime los QR en «Códigos QR». Compilación: `tsc`, build y `expo export` sin errores. |
+| Flujo en emulador o dispositivo | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: escaneando los QR del panel, el QR de otra plaza se rechaza indicando la plaza correcta; entrada a las 17:03:03 y salida a las 17:03:19 registradas con la cámara y el GPS del teléfono (perímetro de prueba `PERIMETRO_PRUEBA` sobre Santiago). Tras la prueba se agregó la plaza destacada en la confirmación y el escaneo (PR #7). |
 
 **Pendiente para piloto** · Confirmar perímetro y las tolerancias propuestas de 15 minutos para llegada y 10 para salida (configurables). El check-out se admite mientras la reserva está en uso; los atrasos se tratan en 05B.
