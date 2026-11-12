@@ -7,7 +7,7 @@ import { Empty, ErrorAlert, FieldError, formatoFechaHora, PageHeader, useApi } f
 
 type Ajuste = {
   id: number;
-  tipo: "ausencia" | "vencimiento" | "salida_a_tiempo" | "salida_tardia" | "rectificacion";
+  tipo: "ausencia" | "vencimiento" | "salida_a_tiempo" | "salida_tardia" | "rectificacion" | "incidente";
   variacion: number;
   motivo: string;
   registradoEn: string;
@@ -21,6 +21,7 @@ const TIPOS: Record<Ajuste["tipo"], string> = {
   salida_a_tiempo: "Salida a tiempo",
   salida_tardia: "Salida tardía",
   rectificacion: "Rectificación",
+  incidente: "Incidente validado",
 };
 
 const nuevaClave = () => crypto.randomUUID();

@@ -2,7 +2,7 @@ import { apiRequest } from "./client";
 
 export type AjusteRanking = {
   id: number;
-  tipo: "ausencia" | "vencimiento" | "salida_a_tiempo" | "salida_tardia" | "rectificacion";
+  tipo: "ausencia" | "vencimiento" | "salida_a_tiempo" | "salida_tardia" | "rectificacion" | "incidente";
   variacion: number;
   motivo: string;
   registradoEn: string;
@@ -20,4 +20,5 @@ export const TITULOS: Record<AjusteRanking["tipo"], string> = {
   salida_a_tiempo: "Salida a tiempo",
   salida_tardia: "Salida tardía",
   rectificacion: "Rectificación de administración",
+  incidente: "Incidente validado",
 };

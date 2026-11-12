@@ -9,7 +9,9 @@ import { CodigosQrPage } from "./pages/codigos-qr";
 import { CuentasPage } from "./pages/cuentas";
 import { DestinosPage } from "./pages/destinos";
 import { DiagnosticoPage } from "./pages/diagnostico";
+import { IncidentesPage } from "./pages/incidentes";
 import { InventarioPage } from "./pages/inventario";
+import { OcupacionPage } from "./pages/ocupacion";
 import { AdminLayout } from "./pages/layout";
 import { LoginPage } from "./pages/login";
 import { RankingPage } from "./pages/ranking";
@@ -33,6 +35,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/ingresar" element={<LoginPage />} />
             <Route element={<AdminLayout />}>
               <Route index element={<CuentasPage />} />
+              <Route path="ocupacion" element={<OcupacionPage />} />
+              <Route path="incidentes" element={<IncidentesPage />} />
               <Route path="inventario" element={<InventarioPage />} />
               <Route path="bloqueos" element={<BloqueosPage />} />
               <Route path="destinos" element={<DestinosPage />} />
