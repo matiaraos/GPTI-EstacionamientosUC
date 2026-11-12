@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { Router } from "express";
 import { z } from "zod";
 import type { Clock } from "../../app.js";
-import type { AuthConfig } from "../../config.js";
+import type { AuthConfig, RankingConfig } from "../../config.js";
 import type { Mailer } from "../../lib/correo.js";
 import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
@@ -14,7 +14,7 @@ import { contrasenaNueva } from "./contrasena.js";
 import { crearRutasRecuperacion } from "./recuperacion.js";
 import { crearSesion, requiereRol, requiereSesion, sesionDe } from "./sesiones.js";
 
-type Deps = { db: Database; clock: Clock; auth: AuthConfig; mailer: Mailer };
+type Deps = { db: Database; clock: Clock; auth: AuthConfig; mailer: Mailer; ranking: RankingConfig };
 
 function registroSchema(dominios: string[]) {
   const lista = dominios.map((dominio) => `@${dominio}`).join(" o ");
@@ -47,7 +47,7 @@ const cuentaPublica = {
   vehiculos: { select: { id: true, patente: true }, orderBy: { id: "asc" } },
 } as const;
 
-export function crearRutasCuentas({ db, clock, auth, mailer }: Deps) {
+export function crearRutasCuentas({ db, clock, auth, mailer, ranking }: Deps) {
   const router = Router();
   router.use(crearRutasRecuperacion({ db, clock, auth, mailer }));
   const conSesion = requiereSesion(db, clock);
@@ -117,7 +117,9 @@ export function crearRutasCuentas({ db, clock, auth, mailer }: Deps) {
       select: { ...cuentaPublica, activa: true, creadaEn: true },
       orderBy: { id: "asc" },
     });
-    response.json({ cuentas });
+    const sumas = await db.ajusteRanking.groupBy({ by: ["cuentaId"], _sum: { variacion: true } });
+    const porCuenta = new Map(sumas.map((s) => [s.cuentaId, s._sum.variacion ?? 0]));
+    response.json({ cuentas: cuentas.map((c) => ({ ...c, puntaje: ranking.puntajeInicial + (porCuenta.get(c.id) ?? 0) })) });
   });
 
   return router;

@@ -192,6 +192,8 @@ model Cuenta {
   autorizacion            AutorizacionPreferente?  @relation("Autorizacion")
   autorizacionesOtorgadas AutorizacionPreferente[] @relation("AutorizacionesOtorgadas")
   bloquesClase            BloqueClase[]
+  ajustesRanking          AjusteRanking[]          @relation("AjustesRecibidos")
+  rectificaciones         AjusteRanking[]          @relation("Rectificaciones")
 }
 
 /// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
@@ -233,12 +235,15 @@ model Recuperacion {
   @@index([cuentaId])
 }
 
-/// `confirmada` y `en_uso` ocupan capacidad; `finalizada` y `cancelada` la liberan y conservan el historial.
+/// `confirmada` y `en_uso` ocupan capacidad; el resto la libera y conserva el historial.
+/// `ausente`: no registró la llegada dentro de la ventana. `vencida`: no registró la salida a tiempo.
 enum EstadoReserva {
   confirmada
   en_uso
   finalizada
   cancelada
+  ausente
+  vencida
 }
 
 /// Reserva de una plaza para el intervalo `[inicio, fin)`. Las restricciones de exclusión de la
@@ -263,13 +268,47 @@ model Reserva {
   metodoDistancia   MetodoDistancia
   creadaEn          DateTime        @default(now()) @db.Timestamptz(3)
   canceladaEn       DateTime?       @db.Timestamptz(3)
+  /// Momento en que el proceso de vencimientos la marcó `ausente` o `vencida`.
+  vencidaEn         DateTime?       @db.Timestamptz(3)
   eventos           EventoReserva[]
+  ajustes           AjusteRanking[]
 
   @@unique([cuentaId, claveIdempotencia])
   @@index([cuentaId, inicio])
   @@index([plazaId, inicio])
   @@index([vehiculoId])
   @@index([destinoId])
+}
+
+enum TipoAjuste {
+  ausencia
+  vencimiento
+  salida_a_tiempo
+  salida_tardia
+  rectificacion
+}
+
+/// Variación del puntaje de ranking. El puntaje es el valor inicial más la suma de los ajustes.
+/// `claveOrigen` identifica el hecho que lo origina (por ejemplo `ausencia:reserva:12`), de modo que
+/// cada hecho ajusta el puntaje una sola vez aunque el proceso se repita.
+model AjusteRanking {
+  id                   Int        @id @default(autoincrement())
+  cuentaId             Int
+  cuenta               Cuenta     @relation("AjustesRecibidos", fields: [cuentaId], references: [id], onDelete: Restrict)
+  reservaId            Int?
+  reserva              Reserva?   @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+  /// Administrador que registró una rectificación; nulo en los ajustes automáticos.
+  autorRectificacionId Int?
+  autorRectificacion   Cuenta?    @relation("Rectificaciones", fields: [autorRectificacionId], references: [id], onDelete: Restrict)
+  tipo                 TipoAjuste
+  claveOrigen          String     @unique
+  variacion            Int
+  motivo               String
+  registradoEn         DateTime   @db.Timestamptz(3)
+
+  @@index([cuentaId, registradoEn])
+  @@index([reservaId])
+  @@index([autorRectificacionId])
 }
 
 enum TipoEvento {

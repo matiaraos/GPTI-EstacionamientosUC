@@ -8,7 +8,8 @@ export function useApi() {
   const { sesion } = useSession();
   const token = sesion?.token;
   return useCallback(
-    <T,>(path: string, options: { method?: string; body?: unknown } = {}) => apiRequest<T>(path, { ...options, token }),
+    <T,>(path: string, options: { method?: string; body?: unknown; headers?: Record<string, string> } = {}) =>
+      apiRequest<T>(path, { ...options, token }),
     [token],
   );
 }

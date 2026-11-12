@@ -8,6 +8,7 @@ import { crearRutasCatalogo } from "./modules/catalogo/rutas.js";
 import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
 import { crearRutasHorario } from "./modules/horario/rutas.js";
 import { crearRutasInventario } from "./modules/inventario/rutas.js";
+import { crearRutasRanking } from "./modules/ranking/rutas.js";
 import { crearRutasReservas } from "./modules/reservas/rutas.js";
 import { crearRutasVisitas } from "./modules/visitas/rutas.js";
 
@@ -49,12 +50,13 @@ export function createApp(deps: AppDeps) {
     }
   });
 
-  app.use(crearRutasCuentas({ db, clock, auth: config.auth, mailer }));
+  app.use(crearRutasCuentas({ db, clock, auth: config.auth, mailer, ranking: config.ranking }));
   app.use(crearRutasCatalogo({ db, clock }));
   app.use(crearRutasVisitas({ db, clock }));
   app.use(crearRutasInventario({ db, clock }));
   app.use(crearRutasHorario({ db, clock }));
-  app.use(crearRutasReservas({ db, clock, config: config.reservas }));
+  app.use(crearRutasRanking({ db, clock, reservas: config.reservas, ranking: config.ranking }));
+  app.use(crearRutasReservas({ db, clock, config: config.reservas, ranking: config.ranking }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);
