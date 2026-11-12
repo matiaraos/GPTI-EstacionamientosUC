@@ -1,9 +1,10 @@
 import { Stack } from "expo-router";
-import { stackScreenOptions } from "@/navigation/stack-options";
+import { useStackOptions } from "@/navigation/stack-options";
 
 export default function ReservarLayout() {
+  const stackOptions = useStackOptions();
   return (
-    <Stack screenOptions={stackScreenOptions}>
+    <Stack screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ title: "Reservar" }} />
       <Stack.Screen
         name="elegir-destino"

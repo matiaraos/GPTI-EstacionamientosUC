@@ -1,23 +1,32 @@
-import { ActivityIndicator, Pressable, Text, type ColorValue, type PressableProps } from "react-native";
-import { colors, minTouch, radius, spacing, type } from "@/theme";
+import { ActivityIndicator, Pressable, Text, View, type PressableProps } from "react-native";
+import { minTouch, radius, spacing, type, useTheme, type Palette } from "@/theme";
+import { Icon, type IconName } from "./icon";
 
-type Variant = "primary" | "secondary" | "destructive";
+type Variant = "primary" | "secondary" | "ghost" | "destructive";
 
 type Props = Omit<PressableProps, "children"> & {
   title: string;
   variant?: Variant;
+  icon?: IconName;
   /** Muestra un indicador y bloquea pulsaciones repetidas mientras dura la operación. */
   loading?: boolean;
 };
 
-const variants: Record<Variant, { background: ColorValue; text: ColorValue }> = {
-  primary: { background: colors.accent, text: colors.onAccent },
-  secondary: { background: colors.field, text: colors.accent },
-  destructive: { background: colors.field, text: colors.danger },
-};
+function estilos(colors: Palette, variant: Variant, pressed: boolean) {
+  switch (variant) {
+    case "primary":
+      return { fondo: pressed ? colors.accentPressed : colors.accent, texto: colors.onAccent };
+    case "secondary":
+      return { fondo: colors.accentSoft, texto: colors.accentText };
+    case "destructive":
+      return { fondo: colors.dangerSoft, texto: colors.danger };
+    case "ghost":
+      return { fondo: "transparent", texto: colors.accentText };
+  }
+}
 
-export function Button({ title, variant = "primary", loading = false, disabled, style, ...props }: Props) {
-  const palette = variants[variant];
+export function Button({ title, variant = "primary", icon, loading = false, disabled, style, ...props }: Props) {
+  const { colors } = useTheme();
   const inactive = Boolean(disabled || loading);
   return (
     <Pressable
@@ -25,25 +34,33 @@ export function Button({ title, variant = "primary", loading = false, disabled, 
       accessibilityLabel={title}
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
-      style={(state) => [
-        {
-          minHeight: minTouch + 6,
-          paddingHorizontal: spacing.md,
-          borderRadius: radius.md,
-          borderCurve: "continuous",
-          backgroundColor: palette.background,
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "row",
-          gap: spacing.sm,
-          opacity: inactive ? 0.55 : state.pressed ? 0.8 : 1,
-        },
-        typeof style === "function" ? style(state) : style,
-      ]}
+      style={(state) => {
+        const { fondo } = estilos(colors, variant, state.pressed);
+        return [
+          {
+            minHeight: minTouch + 8,
+            paddingHorizontal: spacing.lg,
+            borderRadius: radius.md,
+            borderCurve: "continuous",
+            backgroundColor: fondo,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: inactive ? 0.5 : state.pressed && variant !== "primary" ? 0.7 : 1,
+          },
+          typeof style === "function" ? style(state) : style,
+        ];
+      }}
       {...props}
     >
-      {loading && <ActivityIndicator color={palette.text} />}
-      <Text style={[type.headline, { color: palette.text }]}>{title}</Text>
+      {({ pressed }) => {
+        const { texto } = estilos(colors, variant, pressed);
+        return (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            {loading ? <ActivityIndicator color={texto} /> : icon ? <Icon name={icon} color={texto} /> : null}
+            <Text style={[type.headline, { color: texto }]}>{title}</Text>
+          </View>
+        );
+      }}
     </Pressable>
   );
 }

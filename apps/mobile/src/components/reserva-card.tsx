@@ -1,65 +1,102 @@
 import type { ReactNode } from "react";
-import { View } from "react-native";
-import { detalleDestino } from "@/api/catalogo";
+import { StyleSheet, View } from "react-native";
 import { distanciaLegible, type Reserva } from "@/api/reservas";
 import { fechaLegible } from "@/lib/tiempo";
-import { colors, radius, spacing } from "@/theme";
+import { radius, spacing, useTheme, type Palette } from "@/theme";
+import { Icon, type IconName } from "./icon";
 import { ThemedText } from "./themed-text";
 
-const ESTADOS: Record<Reserva["estado"], string> = {
-  confirmada: "Confirmada",
-  en_uso: "En uso",
-  finalizada: "Finalizada",
-  cancelada: "Cancelada",
+const ESTADOS: Record<Reserva["estado"], { texto: string; icono: IconName }> = {
+  confirmada: { texto: "Confirmada", icono: "success" },
+  en_uso: { texto: "En uso", icono: "car" },
+  finalizada: { texto: "Finalizada", icono: "success" },
+  cancelada: { texto: "Cancelada", icono: "cancel" },
 };
 
-function Dato({ label, value }: { label: string; value: string }) {
+function colorEstado(colors: Palette, estado: Reserva["estado"]) {
+  if (estado === "cancelada") return { fondo: colors.dangerSoft, texto: colors.danger };
+  if (estado === "en_uso") return { fondo: colors.warningSoft, texto: colors.warning };
+  return { fondo: colors.successSoft, texto: colors.success };
+}
+
+function Dato({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+  const { colors } = useTheme();
   return (
-    <View style={{ gap: 2 }}>
-      <ThemedText variant="footnote">{label}</ThemedText>
-      <ThemedText variant="body" selectable>
-        {value}
-      </ThemedText>
+    <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "flex-start" }} accessible accessibilityLabel={`${label}: ${value}`}>
+      <Icon name={icon} color={colors.tertiaryLabel} />
+      <View style={{ flex: 1, gap: spacing.xxs }}>
+        <ThemedText variant="footnote">{label}</ThemedText>
+        <ThemedText variant="callout" selectable style={{ fontWeight: "500" }}>
+          {value}
+        </ThemedText>
+      </View>
     </View>
   );
 }
 
-/** Resumen de una reserva: bloque, plaza, horario y distancia con su método. */
+/**
+ * Reserva como un ticket: la plaza y el bloque destacados sobre el color de marca (para saber qué
+ * QR escanear) y, debajo, horario, destino, distancia y vehículo.
+ */
 export function ReservaCard({ reserva, children }: { reserva: Reserva; children?: ReactNode }) {
+  const { colors } = useTheme();
+  const estado = colorEstado(colors, reserva.estado);
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: radius.lg,
-        borderCurve: "continuous",
-        padding: spacing.md,
-        gap: spacing.md,
-      }}
-    >
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md }}>
-        <View style={{ flex: 1, gap: 2 }}>
-          <ThemedText variant="footnote">Plaza</ThemedText>
-          <ThemedText variant="largeTitle" selectable>
+    <View style={{ backgroundColor: colors.surface, borderRadius: radius.xl, borderCurve: "continuous", overflow: "hidden" }}>
+      <View style={{ backgroundColor: colors.accent, padding: spacing.lg, gap: spacing.md }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <ThemedText variant="overline" tone="onAccent" style={{ opacity: 0.85 }}>
+            Tu plaza
+          </ThemedText>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.xs,
+              paddingHorizontal: spacing.sm + 2,
+              paddingVertical: spacing.xs,
+              borderRadius: radius.full,
+              backgroundColor: estado.fondo,
+            }}
+          >
+            <Icon name={ESTADOS[reserva.estado].icono} size={14} color={estado.texto} />
+            <ThemedText variant="footnote" style={{ color: estado.texto, fontWeight: "700" }}>
+              {ESTADOS[reserva.estado].texto}
+            </ThemedText>
+          </View>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <ThemedText variant="display" tone="onAccent" selectable style={{ fontVariant: ["tabular-nums"] }}>
             {reserva.plaza.codigo}
           </ThemedText>
+          <View style={{ flex: 1, gap: spacing.xxs }}>
+            <View style={{ flexDirection: "row", gap: spacing.xs, alignItems: "center" }}>
+              <Icon name="parking" size={16} color={colors.onAccent} />
+              <ThemedText variant="footnote" tone="onAccent" style={{ opacity: 0.85 }}>
+                Bloque
+              </ThemedText>
+            </View>
+            <ThemedText variant="headline" tone="onAccent" selectable>
+              {reserva.zona.nombre}
+            </ThemedText>
+          </View>
         </View>
-        <ThemedText
-          variant="footnote"
-          style={{
-            color: reserva.estado === "cancelada" ? colors.danger : colors.success,
-            fontWeight: "600",
-            paddingTop: spacing.xs,
-          }}
-        >
-          {ESTADOS[reserva.estado]}
-        </ThemedText>
       </View>
-      <Dato label="Bloque" value={reserva.zona.nombre} />
-      <Dato label="Horario" value={`${fechaLegible(reserva.fecha)}, de ${reserva.llegada} a ${reserva.salida}`} />
-      <Dato label="Destino" value={`${reserva.destino.nombre} · ${detalleDestino({ ...reserva.destino, pisos: [] })}`} />
-      <Dato label="Distancia estimada" value={distanciaLegible(reserva)} />
-      <Dato label="Vehículo" value={reserva.vehiculo.patente} />
-      {children}
+
+      {/* Perforación del ticket */}
+      <View style={{ height: StyleSheet.hairlineWidth, marginHorizontal: spacing.lg, borderTopWidth: 1, borderStyle: "dashed", borderColor: colors.separator }} />
+
+      <View style={{ padding: spacing.lg, gap: spacing.md }}>
+        <Dato icon="calendar" label="Horario" value={`${fechaLegible(reserva.fecha)}, ${reserva.llegada}–${reserva.salida}`} />
+        <Dato
+          icon={reserva.destino.tipo === "edificio" ? "building" : "room"}
+          label="Destino"
+          value={reserva.destino.tipo === "edificio" ? reserva.destino.nombre : `${reserva.destino.nombre} · ${reserva.destino.idOrigen}`}
+        />
+        <Dato icon="walk" label="Distancia estimada" value={distanciaLegible(reserva)} />
+        <Dato icon="car" label="Vehículo" value={reserva.vehiculo.patente} />
+        {children ? <View style={{ gap: spacing.sm, paddingTop: spacing.sm }}>{children}</View> : null}
+      </View>
     </View>
   );
 }

@@ -1,16 +1,17 @@
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
-// Las opciones del encabezado tipan los colores como `string`, pero aceptan colores de plataforma.
-const color = (value: (typeof colors)[keyof typeof colors]) => value as string;
-
-/** Opciones compartidas por todas las pilas de navegación. */
-export const stackScreenOptions = {
-  headerLargeTitleEnabled: true,
-  headerShadowVisible: false,
-  headerLargeTitleShadowVisible: false,
-  headerStyle: { backgroundColor: color(colors.background) },
-  headerTitleStyle: { color: color(colors.label) },
-  headerTintColor: color(colors.accent),
-  headerBackButtonDisplayMode: "minimal",
-  contentStyle: { backgroundColor: colors.background },
-} as const;
+/** Opciones compartidas por todas las pilas de navegación, según el modo claro u oscuro. */
+export function useStackOptions() {
+  const { colors } = useTheme();
+  return {
+    headerLargeTitleEnabled: true,
+    headerShadowVisible: false,
+    headerLargeTitleShadowVisible: false,
+    headerStyle: { backgroundColor: colors.background },
+    headerTitleStyle: { color: colors.label },
+    headerLargeTitleStyle: { color: colors.label },
+    headerTintColor: colors.accent,
+    headerBackButtonDisplayMode: "minimal",
+    contentStyle: { backgroundColor: colors.background },
+  } as const;
+}

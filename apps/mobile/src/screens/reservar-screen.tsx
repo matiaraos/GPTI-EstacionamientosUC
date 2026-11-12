@@ -10,7 +10,7 @@ import { DateTimeField } from "@/components/date-time-field";
 import { FormScreen } from "@/components/form-screen";
 import { Notice } from "@/components/notice";
 import { ReservaCard } from "@/components/reserva-card";
-import { SelectRow } from "@/components/select-row";
+import { FieldError, ListRow, Section } from "@/components/section";
 import { ThemedText } from "@/components/themed-text";
 import { ahoraEnSantiago } from "@/lib/tiempo";
 import { useSolicitud } from "@/reserva/solicitud-provider";
@@ -27,8 +27,7 @@ export default function ReservarScreen() {
   const clave = useRef(nuevaClaveSolicitud());
 
   const reservar = useMutation({
-    mutationFn: () =>
-      solicitarReserva(token!, { fecha, llegada, salida, destinoId: destino?.id ?? null }, clave.current),
+    mutationFn: () => solicitarReserva(token!, { fecha, llegada, salida, destinoId: destino?.id ?? null }, clave.current),
     onSuccess: () => {
       clave.current = nuevaClaveSolicitud();
       queryClient.invalidateQueries({ queryKey: ["reservas"] });
@@ -43,58 +42,84 @@ export default function ReservarScreen() {
   };
 
   if (reservar.data) {
+    const { reserva } = reservar.data;
     return (
       <FormScreen>
         <Notice
-          tone="info"
-          message={`Reserva confirmada. Al llegar, escanea el QR de la plaza ${reservar.data.reserva.plaza.codigo} en ${reservar.data.reserva.zona.nombre}.`}
+          tone="success"
+          message={`Reserva confirmada. Al llegar, escanea el QR de la plaza ${reserva.plaza.codigo} en ${reserva.zona.nombre}.`}
         />
-        <ReservaCard reserva={reservar.data.reserva} />
-        <Button title="Ver mi reserva" onPress={() => router.navigate("/mi-reserva")} />
-        <Button title="Nueva solicitud" variant="secondary" onPress={() => reservar.reset()} />
+        <ReservaCard reserva={reserva} />
+        <View style={{ gap: spacing.sm }}>
+          <Button title="Ver mi reserva" icon="car" onPress={() => router.navigate("/mi-reserva")} />
+          <Button title="Hacer otra solicitud" variant="secondary" onPress={() => reservar.reset()} />
+        </View>
       </FormScreen>
     );
   }
 
+  const errorHorario = fields.fecha ?? fields.llegada ?? fields.salida;
+
   return (
     <FormScreen>
-      <ThemedText variant="subhead">
-        Indica a qué sala o edificio vas y cuánto tiempo estarás en el campus. Te asignaremos una plaza en el bloque más
-        cercano a tu destino.
+      <ThemedText variant="callout" tone="secondary">
+        Indica a qué sala o edificio vas y cuánto tiempo estarás. Te asignamos una plaza en el bloque más cercano a tu
+        destino.
       </ThemedText>
 
       {message ? <Notice message={message} /> : null}
 
-      <SelectRow
-        label="Destino"
-        placeholder="Elegir sala o edificio"
-        value={destino?.nombre}
-        detail={destino ? detalleDestino(destino) : undefined}
-        onPress={() => {
-          reservar.reset();
-          router.push("/elegir-destino");
-        }}
-        error={fields.destinoId}
-      />
+      <View style={{ gap: spacing.sm }}>
+        <Section title="Destino">
+          <ListRow
+            icon={destino?.tipo === "edificio" ? "building" : destino ? "room" : "pin"}
+            title={destino ? destino.nombre : "Elegir sala o edificio"}
+            detail={destino ? detalleDestino(destino) : "Busca por código o nombre"}
+            tone={destino ? "default" : "accent"}
+            error={Boolean(fields.destinoId)}
+            accessibilityHint="Abre la búsqueda de destinos"
+            onPress={() => {
+              reservar.reset();
+              router.push("/elegir-destino");
+            }}
+          />
+        </Section>
+        <FieldError message={fields.destinoId} />
+      </View>
 
       <View style={{ gap: spacing.sm }}>
-        <ThemedText variant="subhead" style={{ fontWeight: "500" }}>
-          Permanencia (hora de Santiago)
-        </ThemedText>
-        <DateTimeField
-          label="Fecha"
-          mode="date"
-          value={fecha}
-          minimumDate={ahoraEnSantiago().fecha}
-          onChange={(valor) => cambiar({ fecha: valor })}
-          error={fields.fecha}
-        />
-        <DateTimeField label="Llegada" mode="time" value={llegada} onChange={(valor) => cambiar({ llegada: valor })} error={fields.llegada} />
-        <DateTimeField label="Salida" mode="time" value={salida} onChange={(valor) => cambiar({ salida: valor })} error={fields.salida} />
+        <Section title="Permanencia" footer="Horas de Santiago. Puedes registrar tu llegada desde 15 minutos antes.">
+          <DateTimeField
+            label="Fecha"
+            icon="calendar"
+            mode="date"
+            value={fecha}
+            minimumDate={ahoraEnSantiago().fecha}
+            onChange={(valor) => cambiar({ fecha: valor })}
+            error={Boolean(fields.fecha)}
+          />
+          <DateTimeField
+            label="Llegada"
+            icon="arrival"
+            mode="time"
+            value={llegada}
+            onChange={(valor) => cambiar({ llegada: valor })}
+            error={Boolean(fields.llegada)}
+          />
+          <DateTimeField
+            label="Salida"
+            icon="departure"
+            mode="time"
+            value={salida}
+            onChange={(valor) => cambiar({ salida: valor })}
+            error={Boolean(fields.salida)}
+          />
+        </Section>
+        <FieldError message={errorHorario} />
         {fields.vehiculoId ? <Notice message={fields.vehiculoId} /> : null}
       </View>
 
-      <Button title="Reservar plaza" onPress={() => reservar.mutate()} loading={reservar.isPending} />
+      <Button title="Reservar plaza" icon="parking" onPress={() => reservar.mutate()} loading={reservar.isPending} />
     </FormScreen>
   );
 }

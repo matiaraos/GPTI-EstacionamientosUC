@@ -31,14 +31,12 @@ export default function RegistroScreen() {
   });
   const { message, fields } = describeError(registro.error);
   const submit = () => {
-    if (!registro.isPending) {
-      registro.mutate();
-    }
+    if (!registro.isPending) registro.mutate();
   };
 
   return (
     <FormScreen>
-      <ThemedText variant="subhead">
+      <ThemedText variant="callout" tone="secondary">
         Usa tu correo @{dominio}. La patente identifica el vehículo con el que usarás las plazas reservadas.
       </ThemedText>
 
@@ -47,6 +45,7 @@ export default function RegistroScreen() {
       <View style={{ gap: spacing.md }}>
         <TextField
           label="Correo institucional"
+          icon="mail"
           placeholder={`nombre@${dominio}`}
           value={correo}
           onChangeText={setCorreo}
@@ -68,6 +67,7 @@ export default function RegistroScreen() {
           onChangeText={setContrasena}
           error={fields.contrasena}
           secureTextEntry
+          revelable
           autoCapitalize="none"
           autoComplete="new-password"
           textContentType="newPassword"
@@ -78,6 +78,7 @@ export default function RegistroScreen() {
         <TextField
           ref={patenteRef}
           label="Patente del vehículo"
+          icon="car"
           placeholder="AB1234 o BCDF12"
           value={patente}
           onChangeText={setPatente}

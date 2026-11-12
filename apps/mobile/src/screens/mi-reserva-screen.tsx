@@ -4,11 +4,11 @@ import { ActivityIndicator, Alert, RefreshControl, ScrollView, View } from "reac
 import { describeError } from "@/api/errors";
 import { cancelarReserva, reservasVigentes, type Reserva } from "@/api/reservas";
 import { Button } from "@/components/button";
+import { EmptyState } from "@/components/empty-state";
 import { Notice } from "@/components/notice";
 import { ReservaCard } from "@/components/reserva-card";
-import { ThemedText } from "@/components/themed-text";
 import { useSession } from "@/session/session-provider";
-import { spacing } from "@/theme";
+import { spacing, useTheme } from "@/theme";
 
 function Acciones({ reserva }: { reserva: Reserva }) {
   const router = useRouter();
@@ -19,37 +19,34 @@ function Acciones({ reserva }: { reserva: Reserva }) {
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["reservas"] }),
   });
 
+  // Cancelar libera la plaza para otras personas y no se puede deshacer: amerita confirmación nativa.
   const confirmar = () =>
     Alert.alert("¿Cancelar la reserva?", `Se liberará la plaza ${reserva.plaza.codigo} para ese horario.`, [
       { text: "Mantener", style: "cancel" },
       { text: "Cancelar reserva", style: "destructive", onPress: () => cancelar.mutate() },
     ]);
 
+  const escanear = (tipo: "entrada" | "salida") =>
+    router.push({ pathname: "/escanear", params: { reserva: reserva.id, tipo } });
+
   return (
-    <View style={{ gap: spacing.sm }}>
+    <>
       {cancelar.error ? <Notice message={describeError(cancelar.error).message ?? "No se pudo cancelar."} /> : null}
       {reserva.estado === "confirmada" ? (
         <>
-          <Button
-            title="Registrar llegada"
-            onPress={() => router.push({ pathname: "/escanear", params: { reserva: reserva.id, tipo: "entrada" } })}
-          />
+          <Button title="Registrar llegada" icon="qr" onPress={() => escanear("entrada")} />
           <Button title="Cancelar reserva" variant="destructive" onPress={confirmar} loading={cancelar.isPending} />
         </>
       ) : null}
-      {reserva.estado === "en_uso" ? (
-        <Button
-          title="Registrar salida"
-          onPress={() => router.push({ pathname: "/escanear", params: { reserva: reserva.id, tipo: "salida" } })}
-        />
-      ) : null}
-    </View>
+      {reserva.estado === "en_uso" ? <Button title="Registrar salida" icon="qr" onPress={() => escanear("salida")} /> : null}
+    </>
   );
 }
 
-/** Reservas vigentes de la cuenta, con cancelación antes del check-in. */
+/** Reservas vigentes de la cuenta, con llegada, salida y cancelación. */
 export default function MiReservaScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { token } = useSession();
   const reservas = useQuery({
     queryKey: ["reservas", "vigentes"],
@@ -60,10 +57,11 @@ export default function MiReservaScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}
-      refreshControl={<RefreshControl refreshing={reservas.isRefetching} onRefresh={() => reservas.refetch()} />}
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xxl, gap: spacing.lg }}
+      refreshControl={<RefreshControl refreshing={reservas.isRefetching} onRefresh={() => reservas.refetch()} tintColor={colors.accent} colors={[colors.accent]} />}
     >
-      {reservas.isLoading ? <ActivityIndicator accessibilityLabel="Cargando tus reservas" style={{ padding: spacing.xl }} /> : null}
+      {reservas.isLoading ? <ActivityIndicator accessibilityLabel="Cargando tus reservas" color={colors.accent} style={{ padding: spacing.xl }} /> : null}
 
       {reservas.error ? (
         <View style={{ gap: spacing.md }}>
@@ -73,10 +71,12 @@ export default function MiReservaScreen() {
       ) : null}
 
       {reservas.data && reservas.data.reservas.length === 0 ? (
-        <View style={{ gap: spacing.md }}>
-          <ThemedText variant="subhead">No tienes reservas vigentes.</ThemedText>
-          <Button title="Reservar una plaza" onPress={() => router.navigate("/")} />
-        </View>
+        <EmptyState
+          icon="empty"
+          title="Sin reservas vigentes"
+          message="Cuando reserves una plaza, aquí verás su código, horario y el acceso para registrar tu llegada."
+          action={<Button title="Reservar una plaza" icon="parking" onPress={() => router.navigate("/")} />}
+        />
       ) : null}
 
       {reservas.data?.reservas.map((reserva) => (
