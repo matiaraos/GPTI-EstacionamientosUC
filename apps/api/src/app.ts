@@ -5,6 +5,7 @@ import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import type { Database } from "./lib/prisma.js";
 import { crearRutasCatalogo } from "./modules/catalogo/rutas.js";
 import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
+import { crearRutasVisitas } from "./modules/visitas/rutas.js";
 
 export type Clock = () => Date;
 
@@ -42,6 +43,7 @@ export function createApp(deps: AppDeps) {
 
   app.use(crearRutasCuentas({ db, clock, auth: config.auth }));
   app.use(crearRutasCatalogo({ db, clock }));
+  app.use(crearRutasVisitas({ db, clock }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);
