@@ -4,8 +4,7 @@ import type { Clock } from "../../app.js";
 import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
 import { parseInput } from "../../lib/validation.js";
-import { requiereRol, requiereSesion } from "../cuentas/sesiones.js";
-import { contenidoQr } from "./qr.js";
+import { requiereSesion } from "../cuentas/sesiones.js";
 
 type Deps = { db: Database; clock: Clock };
 
@@ -50,23 +49,6 @@ export function crearRutasCatalogo({ db, clock }: Deps) {
     response.json({ destino });
   });
 
-  /** Plazas con su QR vigente, para imprimir los códigos desde el panel. */
-  router.get("/admin/plazas", conSesion, requiereRol("admin"), async (_request, response) => {
-    const plazas = await db.plaza.findMany({
-      orderBy: [{ zonaId: "asc" }, { codigo: "asc" }],
-      select: {
-        id: true,
-        codigo: true,
-        tipo: true,
-        activa: true,
-        zona: { select: { id: true, nombre: true, idOrigen: true } },
-        qrs: { where: { revocadoEn: null }, select: { identificador: true } },
-      },
-    });
-    response.json({
-      plazas: plazas.map(({ qrs, ...plaza }) => ({ ...plaza, qr: qrs[0] ? contenidoQr(qrs[0].identificador) : null })),
-    });
-  });
 
   return router;
 }

@@ -9,6 +9,7 @@ import type { Database } from "../../lib/prisma.js";
 import { esViolacionUnica } from "../../lib/prisma-errors.js";
 import { parseInput } from "../../lib/validation.js";
 import { dominioDeCorreo, esPatenteChilenaValida, normalizarCorreo, normalizarPatente } from "./normalizacion.js";
+import { estadoAutorizacion } from "../inventario/autorizaciones.js";
 import { contrasenaNueva } from "./contrasena.js";
 import { crearRutasRecuperacion } from "./recuperacion.js";
 import { crearSesion, requiereRol, requiereSesion, sesionDe } from "./sesiones.js";
@@ -100,8 +101,15 @@ export function crearRutasCuentas({ db, clock, auth, mailer }: Deps) {
   });
 
   router.get("/cuenta", conSesion, async (_request, response) => {
-    const cuenta = await db.cuenta.findUniqueOrThrow({ where: { id: sesionDe(response).cuentaId }, select: cuentaPublica });
-    response.json({ cuenta });
+    const { autorizacion, ...cuenta } = await db.cuenta.findUniqueOrThrow({
+      where: { id: sesionDe(response).cuentaId },
+      select: { ...cuentaPublica, autorizacion: { select: { vigenteHasta: true, revocadaEn: true } } },
+    });
+    // Solo el estado administrativo y la vigencia de la habilitación preferente (SC-002).
+    const autorizacionPreferente = autorizacion
+      ? { estado: estadoAutorizacion(autorizacion, clock()), vigenteHasta: autorizacion.vigenteHasta }
+      : null;
+    response.json({ cuenta: { ...cuenta, autorizacionPreferente } });
   });
 
   router.get("/admin/cuentas", conSesion, requiereRol("admin"), async (_request, response) => {

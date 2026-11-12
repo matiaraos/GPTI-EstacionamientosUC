@@ -10,7 +10,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | Verificada · [evidencia](#04a--evidencia) |
 | Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | Verificada · [evidencia](#05a--evidencia) |
 | Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | En curso · [evidencia](#01b--evidencia) |
-| Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Pendiente |
+| Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Verificada · [evidencia](#02b--evidencia) |
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | Pendiente |
 | Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | Pendiente |
 | Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | Pendiente |
@@ -119,3 +119,19 @@ Rama `tramo/01b-recuperacion`. Pruebas en `apps/api/test/recuperacion.test.js` c
 | App: solicitud y nueva contraseña | Compilación | «¿Olvidaste tu contraseña?» en el inicio de sesión, pantalla de solicitud y pantalla `restablecer` que abre el enlace `miestacionamientouc://restablecer?token=` o acepta el enlace pegado. `tsc` y `expo export` pasan. **Pendiente**: recorrer el flujo en el teléfono. |
 
 **Pendiente para piloto** · Confirmar proveedor de correo, vigencia y entrega real. En Expo Go el esquema propio no abre la app: configurar `RECUPERACION_URL=exp://<IP>:8081/--/restablecer` o pegar el enlace.
+
+### 02B · Evidencia
+
+Rama `tramo/02b-inventario`. Pruebas en `apps/api/test/inventario.test.js` contra PostgreSQL real. Panel: páginas Inventario (bloques, horario semanal, plazas, tipo, QR), Bloqueos, Edificios y salas y Preferentes.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Una cuenta común no puede cambiar inventario ni autorizaciones | Verificado (API) | Doce operaciones `/admin/*` (zonas, horarios, plazas, QR, bloqueos, destinos, habilitaciones) responden `403` a un usuario y `401` sin sesión, sin cambios en la base. |
+| Plaza bloqueada o inactiva excluida de nuevas asignaciones | Verificado (API) | Con A1 y A2 bloqueadas de 08:00 a 13:00 se asigna el bloque siguiente; fuera del bloqueo y al levantarlo vuelve A1. Plaza desactivada: se asigna A2. Bloque inactivo o sin horario ese día también se excluye. |
+| Conservar historial y advertir reservas afectadas | Verificado (API) | Las plazas no se eliminan; desactivar, cambiar tipo o bloquear devuelve las reservas vigentes afectadas (con correo) sin cancelarlas, y el panel las muestra antes de confirmar. Los bloqueos levantados quedan en el historial. |
+| Se distinguen plazas regulares y preferentes | Verificado (API) | Al pasar A1 a preferente, una cuenta sin habilitación recibe A2. Crear plaza emite su QR y rechaza códigos repetidos en el bloque. |
+| Habilitación revocada o vencida deja de ser válida; sin certificados ni motivos médicos | Verificado (API) | Vigente hasta el fin del día indicado en Santiago; al vencer o revocarse, `tieneAutorizacionVigente` es falso y `GET /cuenta` informa el estado. El cuerpo con `motivo` o `certificado` se rechaza y la tabla solo tiene vigencia, revocación y quién la otorgó. |
+| QR: rotar y revocar | Verificado (API) | Rotar deja el anterior como `qr_revocado` y el nuevo identifica la plaza; revocar la deja sin QR vigente. |
+| Panel | Compilación | `tsc` y `vite build` pasan. No se recorrió en navegador. |
+
+**Pendiente para piloto** · Confirmar bloques habilitados, inventario, horarios, permisos, salidas peatonales y ubicación de las plazas preferentes. 04B aplica las habilitaciones a la asignación.

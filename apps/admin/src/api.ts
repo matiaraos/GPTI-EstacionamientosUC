@@ -65,3 +65,51 @@ export type Cuenta = {
   creadaEn?: string;
   vehiculos: { id: number; patente: string }[];
 };
+
+export type Horario = { diaSemana: number; abre: string; cierra: string };
+
+export type Zona = {
+  id: number;
+  idOrigen: string | null;
+  nombre: string;
+  activa: boolean;
+  acceso: string | null;
+  horarios: Horario[];
+  plazas: { total: number; activas: number; preferentes: number };
+};
+
+export type Bloqueo = {
+  id: number;
+  inicio: string;
+  fin: string;
+  inicioLocal: string;
+  finLocal: string;
+  motivo: string;
+  creadoEn: string;
+  levantadoEn: string | null;
+  plaza: { id: number; codigo: string; zona: { id: number; nombre: string } };
+  creadoPor: { correo: string };
+};
+
+export type Plaza = {
+  id: number;
+  codigo: string;
+  tipo: "regular" | "preferente";
+  activa: boolean;
+  zona: { id: number; nombre: string; idOrigen: string | null };
+  qr: string | null;
+  bloqueada: boolean;
+  bloqueos: { id: number; inicio: string; fin: string; motivo: string }[];
+};
+
+/** Reserva vigente afectada por un cambio de inventario. */
+export type ReservaAfectada = {
+  id: number;
+  estado: string;
+  fecha: string;
+  llegada: string;
+  salida: string;
+  plaza: { codigo: string };
+  zona: { nombre: string };
+  cuenta: { id: number; correo: string };
+};

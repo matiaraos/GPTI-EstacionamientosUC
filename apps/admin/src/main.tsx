@@ -3,9 +3,13 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ApiError } from "./api";
+import { AutorizacionesPage } from "./pages/autorizaciones";
+import { BloqueosPage } from "./pages/bloqueos";
 import { CodigosQrPage } from "./pages/codigos-qr";
 import { CuentasPage } from "./pages/cuentas";
+import { DestinosPage } from "./pages/destinos";
 import { DiagnosticoPage } from "./pages/diagnostico";
+import { InventarioPage } from "./pages/inventario";
 import { AdminLayout } from "./pages/layout";
 import { LoginPage } from "./pages/login";
 import { SessionProvider } from "./session";
@@ -28,6 +32,10 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/ingresar" element={<LoginPage />} />
             <Route element={<AdminLayout />}>
               <Route index element={<CuentasPage />} />
+              <Route path="inventario" element={<InventarioPage />} />
+              <Route path="bloqueos" element={<BloqueosPage />} />
+              <Route path="destinos" element={<DestinosPage />} />
+              <Route path="autorizaciones" element={<AutorizacionesPage />} />
               <Route path="codigos-qr" element={<CodigosQrPage />} />
               <Route path="diagnostico" element={<DiagnosticoPage />} />
             </Route>
