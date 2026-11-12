@@ -1,9 +1,10 @@
 import { View } from "react-native";
-import { colors, radius, spacing } from "@/theme";
+import { radius, spacing, useTheme } from "@/theme";
 import { ThemedText } from "./themed-text";
 
 /** Plaza que corresponde escanear: código grande y bloque, para encontrar el QR correcto. */
 export function PlazaBanner({ codigo, bloque, instruccion }: { codigo: string; bloque: string; instruccion: string }) {
+  const { colors } = useTheme();
   return (
     <View
       accessible
@@ -15,17 +16,31 @@ export function PlazaBanner({ codigo, bloque, instruccion }: { codigo: string; b
         padding: spacing.md,
         borderRadius: radius.lg,
         borderCurve: "continuous",
-        backgroundColor: colors.surface,
-        borderLeftWidth: 4,
-        borderLeftColor: colors.accent,
+        backgroundColor: colors.accent,
       }}
     >
-      <ThemedText variant="largeTitle" selectable style={{ color: colors.accent }}>
-        {codigo}
-      </ThemedText>
-      <View style={{ flex: 1, gap: 2 }}>
-        <ThemedText variant="headline">{instruccion}</ThemedText>
-        <ThemedText variant="subhead">{bloque}</ThemedText>
+      <View
+        style={{
+          minWidth: 64,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.xs,
+          borderRadius: radius.md,
+          borderCurve: "continuous",
+          backgroundColor: colors.onAccent,
+          alignItems: "center",
+        }}
+      >
+        <ThemedText variant="largeTitle" style={{ color: colors.accent, fontVariant: ["tabular-nums"] }}>
+          {codigo}
+        </ThemedText>
+      </View>
+      <View style={{ flex: 1, gap: spacing.xxs }}>
+        <ThemedText variant="headline" tone="onAccent">
+          {instruccion}
+        </ThemedText>
+        <ThemedText variant="subhead" tone="onAccent" style={{ opacity: 0.85 }}>
+          {bloque}
+        </ThemedText>
       </View>
     </View>
   );

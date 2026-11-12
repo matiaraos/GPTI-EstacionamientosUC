@@ -12,7 +12,11 @@
       "bundleIdentifier": "cl.uc.miestacionamiento"
     },
     "android": {
-      "package": "cl.uc.miestacionamiento"
+      "package": "cl.uc.miestacionamiento",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0B4F9C"
+      }
     },
     "plugins": [
       "expo-router",
@@ -32,7 +36,22 @@
       ],
       "expo-notifications",
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B4F9C",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#0A0E14"
+          }
+        }
+      ]
+    ],
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic"
   }
 }

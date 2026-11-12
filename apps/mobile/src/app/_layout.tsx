@@ -5,7 +5,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ApiError } from "@/api/client";
 import { SessionProvider, useSession } from "@/session/session-provider";
-import { stackScreenOptions } from "@/navigation/stack-options";
+import { useStackOptions } from "@/navigation/stack-options";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,18 +19,19 @@ const queryClient = new QueryClient({
 
 function RootStack() {
   const { status } = useSession();
+  const stackOptions = useStackOptions();
   // Hasta leer el token no se decide la ruta, para no mostrar una pantalla equivocada al abrir la app.
   if (status === "loading") {
     return null;
   }
   const signedIn = status === "signedIn";
   return (
-    <Stack screenOptions={stackScreenOptions}>
+    <Stack screenOptions={stackOptions}>
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
-        <Stack.Screen name="iniciar-sesion" options={{ title: "Iniciar sesión" }} />
+        <Stack.Screen name="iniciar-sesion" options={{ title: "Iniciar sesión", headerShown: false }} />
         <Stack.Screen name="registro" options={{ title: "Crear cuenta" }} />
       </Stack.Protected>
       <Stack.Screen name="diagnostico" options={{ title: "Diagnóstico", headerLargeTitleEnabled: false }} />

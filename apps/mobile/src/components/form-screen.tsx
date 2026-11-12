@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { colors, spacing } from "@/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { spacing, useTheme } from "@/theme";
 
 /**
- * Contenedor de formularios: con el teclado abierto, desplaza el contenido para que el campo
- * activo y la acción principal sigan visibles. Usa el tamaño real del teclado, también en Android
- * con pantalla completa (edge-to-edge), donde `KeyboardAvoidingView` de React Native no lo reserva.
+ * Contenedor de pantallas con formularios: con el teclado abierto, desplaza el contenido para que el
+ * campo activo y la acción principal sigan visibles. Usa el tamaño real del teclado, también en
+ * Android con pantalla completa (edge-to-edge), donde `KeyboardAvoidingView` no lo reserva.
  */
-export function FormScreen({ children }: { children: ReactNode }) {
+export function FormScreen({ children, sinEncabezado = false }: { children: ReactNode; sinEncabezado?: boolean }) {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <KeyboardAwareScrollView
       bottomOffset={spacing.xl}
@@ -15,7 +18,13 @@ export function FormScreen({ children }: { children: ReactNode }) {
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xxl, gap: spacing.lg }}
+      contentContainerStyle={{
+        padding: spacing.md,
+        // Sin encabezado de navegación, el contenido respeta la zona segura superior.
+        paddingTop: sinEncabezado ? insets.top + spacing.xl : spacing.md,
+        paddingBottom: spacing.xxl,
+        gap: spacing.lg,
+      }}
     >
       {children}
     </KeyboardAwareScrollView>
