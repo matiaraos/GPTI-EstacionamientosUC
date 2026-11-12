@@ -59,3 +59,7 @@ export function registrarEntrada(token: string, id: number, datos: { qr: string;
 export function registrarSalida(token: string, id: number, qr: string) {
   return apiRequest<ResultadoUso>(`/reservas/${id}/salida`, { method: "POST", body: { qr }, token });
 }
+
+export function obtenerReserva(token: string, id: number) {
+  return apiRequest<{ reserva: Reserva }>(`/reservas/${id}`, { token });
+}
