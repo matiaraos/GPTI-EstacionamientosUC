@@ -24,14 +24,18 @@ export class CoordinadorSimultaneidad {
     private readonly ahora: () => number = Date.now,
   ) {}
 
-  encolar<T>(clave: string, puntaje: number, tarea: () => Promise<T>): Promise<T> {
+  /**
+   * `recibida` es la hora de llegada de la solicitud al servidor (antes de validarla), para que la
+   * antigüedad no dependa de cuánto tardó cada solicitud en prepararse.
+   */
+  encolar<T>(clave: string, puntaje: number, tarea: () => Promise<T>, recibida = this.ahora()): Promise<T> {
     if (this.ventanaMs <= 0) {
       return tarea();
     }
     return new Promise<T>((resolver, rechazar) => {
       const pendiente: Pendiente = {
         puntaje,
-        recibida: this.ahora(),
+        recibida,
         orden: this.contador++,
         tarea,
         resolver: resolver as (valor: unknown) => void,
