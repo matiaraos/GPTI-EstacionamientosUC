@@ -5,7 +5,9 @@
   "engines": {
     "node": ">=22.12.0 <23"
   },
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev:api": "npm run dev -w @miestacionamientouc/api",
     "dev:admin": "npm run dev -w @miestacionamientouc/admin",
@@ -15,6 +17,7 @@
     "test": "npm test -w @miestacionamientouc/api",
     "db:generate": "npm run db:generate -w @miestacionamientouc/api",
     "db:migrate": "npm run db:migrate -w @miestacionamientouc/api",
-    "db:deploy": "npm run db:deploy -w @miestacionamientouc/api"
+    "db:deploy": "npm run db:deploy -w @miestacionamientouc/api",
+    "db:seed": "npm run db:seed -w @miestacionamientouc/api"
   }
 }

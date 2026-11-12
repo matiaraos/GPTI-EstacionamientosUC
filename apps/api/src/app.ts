@@ -1,13 +1,14 @@
 import cors from "cors";
 import express from "express";
-import type { AppConfig } from "./config.js";
+import type { RuntimeConfig } from "./config.js";
 import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import type { Database } from "./lib/prisma.js";
+import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
 
 export type Clock = () => Date;
 
 export type AppDeps = {
-  config: Pick<AppConfig, "adminOrigin">;
+  config: RuntimeConfig;
   db: Database;
   /** Reloj del servidor. Las pruebas lo reemplazan para fijar la hora. */
   clock?: Clock;
@@ -16,12 +17,13 @@ export type AppDeps = {
 };
 
 export function createApp(deps: AppDeps) {
-  const checkDatabase =
-    deps.checkDatabase ?? (() => deps.db.parkingZone.findFirst({ select: { id: true } }));
+  const { config, db } = deps;
+  const clock = deps.clock ?? (() => new Date());
+  const checkDatabase = deps.checkDatabase ?? (() => db.parkingZone.findFirst({ select: { id: true } }));
 
   const app = express();
   app.disable("x-powered-by");
-  app.use(cors({ origin: deps.config.adminOrigin }));
+  app.use(cors({ origin: config.adminOrigin }));
   app.use(express.json());
 
   app.get("/health", (_request, response) => {
@@ -36,6 +38,8 @@ export function createApp(deps: AppDeps) {
       response.status(503).json({ status: "unavailable" });
     }
   });
+
+  app.use(crearRutasCuentas({ db, clock, auth: config.auth }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);
