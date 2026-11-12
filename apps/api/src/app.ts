@@ -3,6 +3,7 @@ import express from "express";
 import type { RuntimeConfig } from "./config.js";
 import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import type { Database } from "./lib/prisma.js";
+import { crearRutasCatalogo } from "./modules/catalogo/rutas.js";
 import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
 
 export type Clock = () => Date;
@@ -19,7 +20,7 @@ export type AppDeps = {
 export function createApp(deps: AppDeps) {
   const { config, db } = deps;
   const clock = deps.clock ?? (() => new Date());
-  const checkDatabase = deps.checkDatabase ?? (() => db.parkingZone.findFirst({ select: { id: true } }));
+  const checkDatabase = deps.checkDatabase ?? (() => db.zona.findFirst({ select: { id: true } }));
 
   const app = express();
   app.disable("x-powered-by");
@@ -40,6 +41,7 @@ export function createApp(deps: AppDeps) {
   });
 
   app.use(crearRutasCuentas({ db, clock, auth: config.auth }));
+  app.use(crearRutasCatalogo({ db, clock }));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

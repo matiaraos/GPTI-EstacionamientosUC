@@ -6,6 +6,7 @@ Descarga [mapa.html](mapa.html) y ábrelo en un navegador. El mapa funciona sin 
 | --- | --- |
 | [catalogo.geojson](catalogo.geojson) | Perímetro, edificios, 404 registros de salas, 10 bloques y 10 accesos vehiculares de San Joaquín. Los identificadores se conservan desde Ubícate UC. |
 | [distancias.csv](distancias.csv) | Las 4.040 combinaciones sala–bloque, con distancia en metros, método, tipo de conexión en cada extremo y orden dentro del método. |
+| [distancias-edificios.csv](distancias-edificios.csv) | Las 250 combinaciones edificio–bloque, calculadas con la misma red y reglas desde la ubicación publicada de cada edificio. La columna `conexion_edificio` reemplaza a `conexion_sala`. |
 | [red-peatonal-osm.json](red-peatonal-osm.json) | Extracto separado de nodos, vías y entradas de OpenStreetMap, disponible bajo ODbL. |
 
 ## Cómo leer las distancias
@@ -22,4 +23,6 @@ Como referencia, el catálogo ordena primero Centro de Innovación para ED113 (2
 - **Ubícate UC / Open Source UC.** Se usó el commit `44792716e727a0067eb90fd4ae06bc3ed2cca0fd`, campus `SJ`. Los bloques provienen de `PARKING-0` a `PARKING-9`. `PARKING-10` a `PARKING-19` son accesos vehiculares. Se conservan los polígonos y puntos publicados. [GeoJSON original](https://github.com/open-source-uc/UbiCate-v2/blob/44792716e727a0067eb90fd4ae06bc3ed2cca0fd/data/places.json)
 - **© colaboradores de OpenStreetMap.** Extracto consultado el 10 de noviembre de 2026, bbox `-70.6166,-33.5020,-70.6054,-33.4953`. El JSON conserva el bbox y la fecha de la edición más reciente presente en el extracto. [Atribución de OpenStreetMap](https://www.openstreetmap.org/copyright) · [Licencia ODbL](https://opendatacommons.org/licenses/odbl/1-0/)
 
-Desde esta carpeta, ejecuta `python3 generar.py` para regenerar el CSV y el HTML con las fuentes normalizadas del repo. Para actualizar los datos de origen, descarga el GeoJSON de Ubícate y el XML del área de OpenStreetMap y ejecuta `python3 generar.py --fuentes ubicate.json osm.xml`. Actualiza la versión y la fecha de las fuentes al cambiar el extracto.
+Desde esta carpeta, ejecuta `python3 generar.py` para regenerar los CSV y el HTML con las fuentes normalizadas del repo. Para actualizar los datos de origen, descarga el GeoJSON de Ubícate y el XML del área de OpenStreetMap y ejecuta `python3 generar.py --fuentes ubicate.json osm.xml`. Actualiza la versión y la fecha de las fuentes al cambiar el extracto.
+
+La API carga estos archivos con `npm run catalogo:importar -w @miestacionamientouc/api` (también lo hace `npm run db:seed`). La carga se puede repetir: identifica cada registro por su ID de origen.

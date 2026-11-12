@@ -29,7 +29,7 @@ npm run db:deploy
 npm run db:seed
 ```
 
-`npm run db:seed` crea el administrador de prueba definido por `ADMIN_SEED_EMAIL` y `ADMIN_SEED_PASSWORD` en `apps/api/.env` (por defecto `admin@demo.uc.cl` / `admin-demo-2026`). Úsalo para entrar al panel. Las cuentas comunes se registran desde la app con un correo de `ALLOWED_EMAIL_DOMAINS` (por defecto el dominio ficticio `demo.uc.cl`) y una patente chilena (`AB1234` o `BCDF12`).
+`npm run db:seed` carga el catálogo de San Joaquín, crea cinco plazas de demo en dos bloques (imprime el contenido de sus QR) y crea el administrador de prueba definido por `ADMIN_SEED_EMAIL` y `ADMIN_SEED_PASSWORD` en `apps/api/.env` (por defecto `admin@demo.uc.cl` / `admin-demo-2026`). Úsalo para entrar al panel. Las cuentas comunes se registran desde la app con un correo de `ALLOWED_EMAIL_DOMAINS` (por defecto el dominio ficticio `demo.uc.cl`) y una patente chilena (`AB1234` o `BCDF12`).
 
 En terminales separadas, ejecuta `npm run dev:api` y `npm run dev:admin`. El panel abre en [localhost:5173](http://localhost:5173) y la API escucha en el puerto 3000. `GET /health` comprueba el proceso y `GET /ready` comprueba la conexión a PostgreSQL y la presencia de la tabla creada por la migración. El botón **Verificar conexión** consulta `/ready`.
 
