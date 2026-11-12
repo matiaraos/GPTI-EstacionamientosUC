@@ -33,7 +33,10 @@ function RootStack() {
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="iniciar-sesion" options={{ title: "Iniciar sesión", headerShown: false }} />
         <Stack.Screen name="registro" options={{ title: "Crear cuenta" }} />
+        <Stack.Screen name="recuperar" options={{ title: "Recuperar acceso" }} />
       </Stack.Protected>
+      {/* El enlace del correo abre esta ruta con o sin sesión; al cambiar la contraseña la API cierra las sesiones. */}
+      <Stack.Screen name="restablecer" options={{ title: "Nueva contraseña" }} />
       <Stack.Screen name="diagnostico" options={{ title: "Diagnóstico", headerLargeTitleEnabled: false }} />
     </Stack>
   );

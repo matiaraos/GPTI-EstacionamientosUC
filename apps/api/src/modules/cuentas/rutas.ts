@@ -3,20 +3,17 @@ import { Router } from "express";
 import { z } from "zod";
 import type { Clock } from "../../app.js";
 import type { AuthConfig } from "../../config.js";
+import type { Mailer } from "../../lib/correo.js";
 import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
 import { esViolacionUnica } from "../../lib/prisma-errors.js";
 import { parseInput } from "../../lib/validation.js";
 import { dominioDeCorreo, esPatenteChilenaValida, normalizarCorreo, normalizarPatente } from "./normalizacion.js";
+import { contrasenaNueva } from "./contrasena.js";
+import { crearRutasRecuperacion } from "./recuperacion.js";
 import { crearSesion, requiereRol, requiereSesion, sesionDe } from "./sesiones.js";
 
-type Deps = { db: Database; clock: Clock; auth: AuthConfig };
-
-// bcrypt solo considera los primeros 72 bytes.
-const contrasenaNueva = z
-  .string({ error: "Ingresa una contraseña." })
-  .min(8, "La contraseña debe tener al menos 8 caracteres.")
-  .refine((value) => Buffer.byteLength(value) <= 72, "La contraseña es demasiado larga.");
+type Deps = { db: Database; clock: Clock; auth: AuthConfig; mailer: Mailer };
 
 function registroSchema(dominios: string[]) {
   const lista = dominios.map((dominio) => `@${dominio}`).join(" o ");
@@ -49,8 +46,9 @@ const cuentaPublica = {
   vehiculos: { select: { id: true, patente: true }, orderBy: { id: "asc" } },
 } as const;
 
-export function crearRutasCuentas({ db, clock, auth }: Deps) {
+export function crearRutasCuentas({ db, clock, auth, mailer }: Deps) {
   const router = Router();
+  router.use(crearRutasRecuperacion({ db, clock, auth, mailer }));
   const conSesion = requiereSesion(db, clock);
   // Hash de referencia para que una cuenta inexistente tarde lo mismo que una contraseña incorrecta.
   const hashReferencia = bcrypt.hash("contraseña-de-referencia", auth.bcryptRounds);

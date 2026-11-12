@@ -27,3 +27,19 @@ export function cerrarSesion(token: string) {
 export function obtenerCuenta(token: string) {
   return apiRequest<{ cuenta: Cuenta }>("/cuenta", { token });
 }
+
+/** La respuesta es la misma exista o no la cuenta. */
+export function solicitarRecuperacion(correo: string) {
+  return apiRequest<{ mensaje: string }>("/auth/recuperacion", { method: "POST", body: { correo } });
+}
+
+export function confirmarRecuperacion(token: string, contrasena: string) {
+  return apiRequest<{ mensaje: string }>("/auth/recuperacion/confirmar", { method: "POST", body: { token, contrasena } });
+}
+
+/** Acepta el token o el enlace completo pegado desde el correo. */
+export function tokenDeEnlace(texto: string): string {
+  const limpio = texto.trim();
+  const coincidencia = /[?&]token=([^&\s]+)/.exec(limpio);
+  return coincidencia ? decodeURIComponent(coincidencia[1]) : limpio;
+}

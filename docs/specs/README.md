@@ -9,7 +9,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Acceso y datos | [03A](03-horarios.md#03a--destino-y-permanencia) | Destino y permanencia | RF-05 | 01A | Verificada · [evidencia](#03a--evidencia) |
 | Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | Verificada · [evidencia](#04a--evidencia) |
 | Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | Verificada · [evidencia](#05a--evidencia) |
-| Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | Pendiente |
+| Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | En curso · [evidencia](#01b--evidencia) |
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Pendiente |
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | Pendiente |
 | Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | Pendiente |
@@ -106,3 +106,16 @@ Rama `tramo/05a-qr`. Pruebas en `apps/api/test/uso.test.js` contra PostgreSQL re
 | Flujo en emulador o dispositivo | Verificado (dispositivo) | Galaxy A36 (Android 16) con Expo Go 55, 12-11-2026: escaneando los QR del panel, el QR de otra plaza se rechaza indicando la plaza correcta; entrada a las 17:03:03 y salida a las 17:03:19 registradas con la cámara y el GPS del teléfono (perímetro de prueba `PERIMETRO_PRUEBA` sobre Santiago). Tras la prueba se agregó la plaza destacada en la confirmación y el escaneo (PR #7). |
 
 **Pendiente para piloto** · Confirmar perímetro y las tolerancias propuestas de 15 minutos para llegada y 10 para salida (configurables). El check-out se admite mientras la reserva está en uso; los atrasos se tratan en 05B.
+
+### 01B · Evidencia
+
+Rama `tramo/01b-recuperacion`. Pruebas en `apps/api/test/recuperacion.test.js` contra PostgreSQL real. Canal de prueba: Mailpit (`docker compose up -d mailpit`, bandeja en `localhost:8025`); vigencia `RECUPERACION_TTL_MIN` (30 min por defecto) y enlace `RECUPERACION_URL`.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Un enlace válido permite cambiar la contraseña una vez | Verificado (API) | La nueva contraseña inicia sesión y la anterior no; repetir el enlace responde `enlace_usado`. Tres confirmaciones simultáneas con el mismo enlace: una `200` y dos `400`. Probado también con `curl` contra la API local leyendo el correo desde la API de Mailpit. |
+| Enlaces vencidos o reutilizados se rechazan | Verificado (API) | `enlace_vencido` al cumplirse la vigencia, `enlace_usado` al repetir, `enlace_invalido` con un token inventado. Cambiar la contraseña anula los demás enlaces pendientes y cierra todas las sesiones de la cuenta. Solo se guarda el hash SHA-256 del token. |
+| Un correo desconocido recibe la misma respuesta pública | Verificado (API) | Correo registrado, desconocido y externo reciben el mismo `202`; solo el registrado genera correo. El envío no se espera, para que la respuesta no dependa de la existencia de la cuenta. Una cuenta desactivada no recibe enlace. |
+| App: solicitud y nueva contraseña | Compilación | «¿Olvidaste tu contraseña?» en el inicio de sesión, pantalla de solicitud y pantalla `restablecer` que abre el enlace `miestacionamientouc://restablecer?token=` o acepta el enlace pegado. `tsc` y `expo export` pasan. **Pendiente**: recorrer el flujo en el teléfono. |
+
+**Pendiente para piloto** · Confirmar proveedor de correo, vigencia y entrega real. En Expo Go el esquema propio no abre la app: configurar `RECUPERACION_URL=exp://<IP>:8081/--/restablecer` o pegar el enlace.
