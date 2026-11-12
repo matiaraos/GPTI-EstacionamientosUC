@@ -18,7 +18,7 @@ export function testDatabaseUrl() {
 }
 
 export function createTestDatabase() {
-  return createDatabase(testDatabaseUrl());
+  return createDatabase(testDatabaseUrl(), { statementTimeoutMs: 30_000 });
 }
 
 /** Vacía todas las tablas del esquema público salvo el historial de migraciones. */
