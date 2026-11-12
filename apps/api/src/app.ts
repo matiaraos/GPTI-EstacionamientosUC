@@ -1,10 +1,27 @@
 import cors from "cors";
 import express from "express";
+import type { AppConfig } from "./config.js";
+import { errorHandler, notFoundHandler } from "./lib/errors.js";
+import type { Database } from "./lib/prisma.js";
 
-export function createApp(adminOrigin: string, checkDatabase: () => Promise<unknown>) {
+export type Clock = () => Date;
+
+export type AppDeps = {
+  config: Pick<AppConfig, "adminOrigin">;
+  db: Database;
+  /** Reloj del servidor. Las pruebas lo reemplazan para fijar la hora. */
+  clock?: Clock;
+  /** Comprobación de `/ready`. Por defecto consulta la tabla creada por la migración inicial. */
+  checkDatabase?: () => Promise<unknown>;
+};
+
+export function createApp(deps: AppDeps) {
+  const checkDatabase =
+    deps.checkDatabase ?? (() => deps.db.parkingZone.findFirst({ select: { id: true } }));
+
   const app = express();
   app.disable("x-powered-by");
-  app.use(cors({ origin: adminOrigin }));
+  app.use(cors({ origin: deps.config.adminOrigin }));
   app.use(express.json());
 
   app.get("/health", (_request, response) => {
@@ -20,5 +37,7 @@ export function createApp(adminOrigin: string, checkDatabase: () => Promise<unkn
     }
   });
 
+  app.use(notFoundHandler);
+  app.use(errorHandler);
   return app;
 }

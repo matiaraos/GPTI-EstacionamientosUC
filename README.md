@@ -47,7 +47,9 @@ npm run build
 k6 run tests/load/readiness.js
 ```
 
-GitHub Actions instala el lockfile, revisa los tipos, ejecuta Jest, compila el panel y exporta los bundles móviles de Android e iOS. También levanta PostgreSQL y comprueba que `/health` devuelva `200` y que `/ready` pase de `503` a `200` al aplicar la migración inicial.
+`npm test` requiere PostgreSQL en ejecución (`docker compose up -d --wait db`). Las pruebas crean y migran una base separada, `estacionamientos_test`, sin tocar los datos de desarrollo.
+
+GitHub Actions instala el lockfile, revisa los tipos, levanta PostgreSQL, ejecuta Jest, compila el panel y exporta los bundles móviles de Android e iOS. También levanta PostgreSQL y comprueba que `/health` devuelva `200` y que `/ready` pase de `503` a `200` al aplicar la migración inicial.
 
 Para verificar las interfaces, abre el panel en el navegador y la app en Android o iOS. Pulsa **Verificar conexión** con la API en ejecución y confirma el mensaje de disponibilidad. Detén solo la API, pulsa de nuevo y confirma el mensaje de error.
 
