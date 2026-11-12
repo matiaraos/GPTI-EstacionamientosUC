@@ -9,6 +9,7 @@ import { partesLocales } from "../../lib/tiempo.js";
 import { parseInput } from "../../lib/validation.js";
 import { requiereRol, requiereSesion, sesionDe } from "../cuentas/sesiones.js";
 import { puntajeDe } from "./ajustes.js";
+import { atenderEsperas } from "../reservas/espera.js";
 import { procesarVencimientos } from "./vencimientos.js";
 
 type Deps = { db: Database; clock: Clock; reservas: ReservasConfig; ranking: RankingConfig };
@@ -124,7 +125,9 @@ export function crearRutasRanking({ db, clock, reservas, ranking }: Deps) {
 
   /** Ejecuta ahora el proceso de ausencias y vencimientos (también corre periódicamente). */
   router.post("/admin/procesos/vencimientos", ...admin, async (_request, response) => {
-    response.json(await procesarVencimientos(db, clock(), reservas, ranking));
+    const resultado = await procesarVencimientos(db, clock(), reservas, ranking);
+    const esperas = await atenderEsperas(db, clock, reservas, ranking);
+    response.json({ ...resultado, esperasAsignadas: esperas.asignadas });
   });
 
   return router;

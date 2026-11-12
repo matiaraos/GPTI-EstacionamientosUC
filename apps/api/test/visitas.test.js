@@ -56,6 +56,9 @@ describe("POST /visitas/validar", () => {
       inicio: "2026-11-16T11:15:00.000Z",
       fin: "2026-11-16T16:30:00.000Z",
       destino: { id: destinoId, idOrigen: "ED113-SJ", nombre: "ED113", tipo: "sala" },
+      destinoDesempate: null,
+      origenDestino: "declarado",
+      clases: [],
     });
   });
 

@@ -13,7 +13,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Verificada · [evidencia](#02b--evidencia) |
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | En curso · [evidencia](#03b--evidencia) |
 | Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | En curso · [evidencia](#05b--evidencia) |
-| Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | Pendiente |
+| Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | En curso · [evidencia](#04b--evidencia) |
 | Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Pendiente |
 | Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | Pendiente |
 | Piloto | [07](07-recurrencia.md#07--reservas-recurrentes) | Recurrencia semanal | RF-22 | 06 | Pendiente |
@@ -164,3 +164,19 @@ Rama `tramo/05b-ranking`. Pruebas en `apps/api/test/ranking.test.js` contra Post
 | Puntaje e historial con motivo y reserva | Verificado (API) · Compilación (app y panel) | `GET /ranking` devuelve puntaje e historial con motivo y reserva; la persona ve «Administración» como autor de una rectificación. App: Cuenta → Mi puntaje. Panel: Ranking con historial, rectificación y proceso manual. `tsc`, `expo export` y `vite build` pasan. **Pendiente**: revisar la pantalla en el teléfono. |
 
 **Pendiente para piloto** · Confirmar la tabla de ajustes y niveles RN-06 y RN-07. Los bloqueos por incidentes verificados se agregan en 08A.
+
+### 04B · Evidencia
+
+Rama `tramo/04b-asignacion`. Pruebas en `apps/api/test/asignacion.test.js` contra PostgreSQL real. La reserva guarda `origenDestino` (`horario` o `declarado`), el destino de desempate y, en un cambio, la reserva que reemplaza. `SolicitudEspera` con consentimiento, asignación única y exclusión de esperas pendientes solapadas por cuenta.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Dos bloques empatados para la primera clase: gana el más cercano a la última | Verificado (API) | Con PARKING-7 y PARKING-5 a 200 m de la primera clase, gana PARKING-5 (100 m a la última frente a 300 m). El desempate aplica ruta peatonal antes que línea recta y deja al final el bloque sin distancia a la última clase. Sin clases en la visita se usa el destino declarado, que entonces es obligatorio. |
+| Solicitudes simultáneas por ranking y luego antigüedad | Verificado (API) | Con ventana de 400 ms y una plaza libre, la cuenta de mayor puntaje obtiene la plaza aunque llegue 100 ms después; con igual puntaje gana la solicitud más antigua. Ventana configurable `SIMULTANEIDAD_MS` (1 s por defecto). |
+| Una autorización vencida excluye plazas preferentes | Verificado (API) | Vigente: recibe la preferente A1 (se usan primero para no restar regulares). Vencida, vencida al inicio de la visita o revocada: recibe una regular. Una cuenta habilitada también recibe regulares. |
+| Una alternativa fallida conserva la reserva anterior | Verificado (API) | `POST /reservas/:id/cambiar` cancela la original y asigna la alternativa en una transacción: sin cupo responde `409` y la original sigue `confirmada` en su plaza. Aceptada, la nueva guarda `reemplazaId`, puede solaparse con la original y el reintento devuelve la misma. |
+| Una liberación atiende al siguiente candidato compatible | Verificado (API) | Al cancelar A1, de tres esperas se asigna la de mayor puntaje entre las compatibles (la de mayor puntaje que necesitaba hasta las 14:00 se salta); repetir no duplica. Una espera cancelada no se asigna y una pendiente pasada su ventana queda `vencida`. La espera exige `consentimiento: true`. También se atiende al registrar salidas, vencimientos, levantar bloqueos o activar plazas. |
+| PP-25: máximo de 5 s con 50 usuarios concurrentes | Verificado (local) | 50 solicitudes simultáneas contra PostgreSQL real con ventana de 400 ms: máximo ~2,2 s, 5 reservas, 45 `sin_cupo` y ninguna plaza repetida. `tests/load/asignacion.js` repite la prueba con k6 contra la API desplegada. |
+| App | Compilación | Reservar muestra las clases que definen el destino y ofrece la lista de espera con confirmación al no haber cupo; Mi reserva lista las esperas y permite cambiar el horario. `tsc` y `expo export` pasan. **Pendiente**: recorrer en el teléfono. |
+
+**Pendiente de producto** · Confirmar las conexiones peatonales inferidas y la ventana de simultaneidad. El orden por ranking se resuelve en el proceso de la API (una instancia en el piloto); la base sigue impidiendo solapes con varias. Ejecutar k6 en el entorno del piloto.

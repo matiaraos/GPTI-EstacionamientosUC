@@ -61,6 +61,7 @@ describe("entrada y salida con QR", () => {
 
   beforeEach(async () => {
     await db.eventoReserva.deleteMany();
+    await db.solicitudEspera.deleteMany();
     await db.ajusteRanking.deleteMany();
     await db.reserva.deleteMany();
     clock.set("2026-11-16T10:00:00.000Z");

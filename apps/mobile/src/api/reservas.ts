@@ -18,6 +18,18 @@ export type Reserva = {
   vehiculo: { id: number; patente: string };
   metros: number;
   metodoDistancia: "peatonal" | "linea_recta";
+  origenDestino?: "horario" | "declarado";
+  reemplazaId?: number | null;
+};
+
+export type Espera = {
+  id: number;
+  estado: "pendiente" | "asignada" | "cancelada" | "vencida";
+  fecha: string;
+  llegada: string;
+  salida: string;
+  destino: Pick<Destino, "id" | "idOrigen" | "nombre" | "tipo">;
+  reservaId: number | null;
 };
 
 /** La clave identifica la solicitud: reenviarla con la misma clave devuelve la misma reserva. */
@@ -62,4 +74,32 @@ export function registrarSalida(token: string, id: number, qr: string) {
 
 export function obtenerReserva(token: string, id: number) {
   return apiRequest<{ reserva: Reserva }>(`/reservas/${id}`, { token });
+}
+
+/** Cambia una reserva confirmada. Si la alternativa falla, la API conserva la original. */
+export function cambiarReserva(token: string, id: number, datos: DatosVisita, clave: string) {
+  return apiRequest<{ reserva: Reserva }>(`/reservas/${id}/cambiar`, {
+    method: "POST",
+    body: datos,
+    token,
+    headers: { "Idempotency-Key": clave },
+  });
+}
+
+/** Lista de espera: requiere el consentimiento explícito de la persona. */
+export function unirseAEspera(token: string, datos: DatosVisita, clave: string) {
+  return apiRequest<{ espera: Espera }>("/esperas", {
+    method: "POST",
+    body: { ...datos, consentimiento: true },
+    token,
+    headers: { "Idempotency-Key": clave },
+  });
+}
+
+export function misEsperas(token: string) {
+  return apiRequest<{ esperas: Espera[] }>("/esperas", { token });
+}
+
+export function cancelarEspera(token: string, id: number) {
+  return apiRequest<{ espera: Espera }>(`/esperas/${id}/cancelar`, { method: "POST", token });
 }

@@ -15,6 +15,7 @@ const configSchema = z.object({
   TOLERANCIA_LLEGADA_MIN: z.coerce.number().int().min(0).max(120).default(15),
   TOLERANCIA_SALIDA_MIN: z.coerce.number().int().min(0).max(120).default(10),
   PERIMETRO_PRUEBA: z.string().optional(),
+  SIMULTANEIDAD_MS: z.coerce.number().int().min(0).max(4000).default(1000),
   RANKING_INICIAL: z.coerce.number().int().default(100),
   RANKING_AUSENCIA: z.coerce.number().int().max(0).default(-10),
   RANKING_VENCIMIENTO: z.coerce.number().int().max(0).default(-5),
@@ -44,6 +45,11 @@ export type ReservasConfig = {
   perimetroPrueba: Poligono | null;
   /** Margen en metros alrededor del perímetro para absorber el error del GPS. */
   margenPerimetroM: number;
+  /**
+   * Ventana en milisegundos en que las solicitudes de un mismo día se consideran simultáneas y se
+   * atienden por ranking y antigüedad (04B). Pendiente de confirmar para el piloto; 0 la desactiva.
+   */
+  simultaneidadMs: number;
 };
 
 /**
@@ -123,6 +129,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       toleranciaSalidaMin: values.TOLERANCIA_SALIDA_MIN,
       perimetroPrueba: leerPerimetro(values.PERIMETRO_PRUEBA),
       margenPerimetroM: values.MARGEN_PERIMETRO_M,
+      simultaneidadMs: values.SIMULTANEIDAD_MS,
     },
     ranking: {
       puntajeInicial: values.RANKING_INICIAL,

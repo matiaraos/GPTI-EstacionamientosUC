@@ -6,6 +6,7 @@ export default function MiReservaLayout() {
   return (
     <Stack screenOptions={stackOptions}>
       <Stack.Screen name="mi-reserva" options={{ title: "Mi reserva" }} />
+      <Stack.Screen name="cambiar-reserva" options={{ title: "Cambiar horario", headerLargeTitleEnabled: false }} />
       <Stack.Screen name="escanear" options={{ presentation: "modal", headerLargeTitleEnabled: false }} />
     </Stack>
   );
