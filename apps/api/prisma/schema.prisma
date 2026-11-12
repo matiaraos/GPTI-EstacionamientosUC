@@ -12,3 +12,44 @@ model ParkingZone {
   name   String
   active Boolean @default(true)
 }
+
+enum Rol {
+  usuario
+  admin
+}
+
+/// Cuenta de la comunidad UC. El correo se guarda normalizado (minúsculas y sin espacios).
+model Cuenta {
+  id             Int        @id @default(autoincrement())
+  correo         String     @unique
+  hashContrasena String
+  rol            Rol        @default(usuario)
+  activa         Boolean    @default(true)
+  creadaEn       DateTime   @default(now()) @db.Timestamptz(3)
+  vehiculos      Vehiculo[]
+  sesiones       Sesion[]
+}
+
+/// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
+model Vehiculo {
+  id       Int      @id @default(autoincrement())
+  cuentaId Int
+  cuenta   Cuenta   @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  patente  String   @unique
+  creadoEn DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([cuentaId])
+}
+
+/// Sesión revocable. Solo se guarda el hash SHA-256 del token entregado al cliente.
+model Sesion {
+  id         Int       @id @default(autoincrement())
+  cuentaId   Int
+  cuenta     Cuenta    @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  hashToken  String    @unique
+  creadaEn   DateTime  @default(now()) @db.Timestamptz(3)
+  venceEn    DateTime  @db.Timestamptz(3)
+  revocadaEn DateTime? @db.Timestamptz(3)
+
+  @@index([cuentaId])
+}

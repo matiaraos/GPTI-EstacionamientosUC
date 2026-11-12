@@ -10,3 +10,5 @@ apps/api/src/generated/
 /apps/mobile/android/
 /apps/mobile/ios/
 *:Zone.Identifier
+__pycache__/
+*.pyc

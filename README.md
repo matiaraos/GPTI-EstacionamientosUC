@@ -26,7 +26,10 @@ cp apps/admin/.env.example apps/admin/.env
 cp apps/mobile/.env.example apps/mobile/.env
 docker compose up -d --wait db
 npm run db:deploy
+npm run db:seed
 ```
+
+`npm run db:seed` crea el administrador de prueba definido por `ADMIN_SEED_EMAIL` y `ADMIN_SEED_PASSWORD` en `apps/api/.env` (por defecto `admin@demo.uc.cl` / `admin-demo-2026`). Úsalo para entrar al panel. Las cuentas comunes se registran desde la app con un correo de `ALLOWED_EMAIL_DOMAINS` (por defecto el dominio ficticio `demo.uc.cl`) y una patente chilena (`AB1234` o `BCDF12`).
 
 En terminales separadas, ejecuta `npm run dev:api` y `npm run dev:admin`. El panel abre en [localhost:5173](http://localhost:5173) y la API escucha en el puerto 3000. `GET /health` comprueba el proceso y `GET /ready` comprueba la conexión a PostgreSQL y la presencia de la tabla creada por la migración. El botón **Verificar conexión** consulta `/ready`.
 
@@ -36,7 +39,7 @@ Usa `npm run db:migrate` para crear una nueva migración al cambiar el esquema.
 
 Configura `EXPO_PUBLIC_API_URL` en `apps/mobile/.env`. El ejemplo usa `10.0.2.2` para el emulador Android. En un simulador iOS usa `http://localhost:3000`. En un teléfono físico usa la IP local del equipo que ejecuta la API, en la misma red.
 
-Crea e instala la compilación de desarrollo desde `apps/mobile` con `npx expo run:android` o `npx expo run:ios` (macOS y Xcode). Para iniciar Metro en sesiones posteriores, ejecuta `npm run dev:mobile` desde la raíz y abre la compilación instalada. La ruta inicial `/` muestra el diagnóstico. Las rutas viven en `src/app`, las pantallas en `src/screens` y las consultas HTTP en `src/api` dentro del workspace móvil. [Compilaciones de desarrollo de Expo](https://docs.expo.dev/develop/development-builds/introduction/)
+Crea e instala la compilación de desarrollo desde `apps/mobile` con `npx expo run:android` o `npx expo run:ios` (macOS y Xcode). Para iniciar Metro en sesiones posteriores, ejecuta `npm run dev:mobile` desde la raíz y abre la compilación instalada. Sin sesión, la app abre el inicio de sesión; el diagnóstico de conexión está en `/diagnostico`. Las rutas viven en `src/app`, las pantallas en `src/screens`, las consultas HTTP en `src/api`, el tema en `src/theme` y los componentes compartidos en `src/components` dentro del workspace móvil. [Compilaciones de desarrollo de Expo](https://docs.expo.dev/develop/development-builds/introduction/)
 
 ### Verificación
 

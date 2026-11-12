@@ -1,8 +1,7 @@
 import request from "supertest";
 import { createApp } from "../dist/app.js";
+import { testConfig as config } from "./helpers/app.js";
 import { createTestDatabase } from "./helpers/db.js";
-
-const config = { adminOrigin: "http://localhost:5173" };
 
 test("informa que la API está activa aunque no haya conexión a PostgreSQL", async () => {
   const checkDatabase = async () => {

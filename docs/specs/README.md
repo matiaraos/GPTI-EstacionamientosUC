@@ -4,7 +4,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 
 | Etapa | Tramo | Alcance | Requisitos | Depende de | Estado |
 | --- | --- | --- | --- | --- | --- |
-| Acceso y datos | [01A](01-cuentas.md#01a--acceso-y-base-visual) | Acceso y base visual | RF-01–02 | Base del repo | Pendiente |
+| Acceso y datos | [01A](01-cuentas.md#01a--acceso-y-base-visual) | Acceso y base visual | RF-01–02 | Base del repo | En curso · [evidencia](#01a--evidencia) |
 | Acceso y datos | [02A](02-inventario.md#02a--catálogo-geográfico-y-plazas-de-prueba) | Catálogo de la demo | RF-18 | 01A | Pendiente |
 | Acceso y datos | [03A](03-horarios.md#03a--destino-y-permanencia) | Destino y permanencia | RF-05 | 01A | Pendiente |
 | Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | Pendiente |
@@ -25,3 +25,22 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 
 - Ejecutar los chequeos del repo y las pruebas específicas del tramo. Usar PostgreSQL real para verificar conflictos de reserva y reintentos y un emulador o dispositivo para verificar flujos móviles. Exportar bundles acredita la compilación. Para acreditar el flujo, ejecutarlo.
 - Actualizar solo el tramo trabajado. Usar `En curso` mientras queden criterios pendientes y `Verificada` cuando exista evidencia de los criterios del tramo. Anotar aquí las pruebas, resultados y validaciones del piloto pendientes. Enlazar el commit o PR si existe. El certificado y el acta son fuentes de alcance académico.
+
+## Evidencia
+
+### 01A · Evidencia
+
+Rama `tramo/01a-acceso` (sobre `tramo/00-base`).
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Un registro válido permite iniciar sesión | Verificado (API) | `apps/api/test/cuentas.test.js` › «un registro válido permite iniciar sesión…» y flujo con `curl` contra la API local: registro → sesión → `GET /cuenta`. |
+| Correo externo o duplicado y patente inválida se rechazan sin registros parciales | Verificado (API) | Pruebas de correo externo, patente inválida, correo duplicado con otras mayúsculas, patente repetida y tres registros simultáneos con el mismo correo; todas cuentan filas de `Cuenta` y `Vehiculo` en PostgreSQL real. |
+| Credenciales incorrectas reciben un error genérico | Verificado (API) | Contraseña incorrecta y correo desconocido devuelven el mismo cuerpo `401 credenciales_invalidas`; una cuenta desactivada también. |
+| Cerrar sesión invalida el acceso de esa sesión | Verificado (API) | `DELETE /auth/sesion` revoca solo esa sesión; otra sesión de la misma cuenta sigue válida. También se rechazan sesiones vencidas y tokens inventados. |
+| La API rechaza operaciones administrativas de cuentas comunes | Verificado (API) | `GET /admin/cuentas` responde `403 acceso_denegado` a un usuario y `200` al administrador provisionado con `npm run db:seed`. |
+| En móvil, campos y acción principal accesibles con teclado abierto | Pendiente de dispositivo | Formularios dentro de `FormScreen` (`KeyboardAvoidingView` + `ScrollView` con `keyboardShouldPersistTaps`). Falta probarlo en Android/iOS. |
+| App: registro, inicio y cierre de sesión con almacenamiento seguro | Pendiente de dispositivo | Token en `expo-secure-store`, compuerta de hidratación y `Stack.Protected`. Compilación: `tsc` y `expo export` para Android e iOS sin errores. |
+| Panel con acceso administrativo | Pendiente de navegador | Inicio de sesión que rechaza cuentas sin rol `admin`, guardia de rutas y listado de cuentas. Compilación: `npm run build -w @miestacionamientouc/admin`. |
+
+**Pendiente para piloto** · Confirmar dominios institucionales y el procedimiento para habilitar a los primeros administradores. El seed solo crea un administrador local de prueba.
