@@ -1,12 +1,13 @@
 import type { Clock } from "../../app.js";
-import type { ReservasConfig } from "../../config.js";
-import type { TipoEvento } from "../../generated/prisma/client.js";
+import type { RankingConfig, ReservasConfig } from "../../config.js";
+import type { EstadoReserva, Prisma, TipoEvento } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/errors.js";
 import { dentroDelPerimetro, esPoligono, type Poligono } from "../../lib/geo.js";
 import type { Database } from "../../lib/prisma.js";
 import { restriccionUnica } from "../../lib/prisma-errors.js";
 import { partesLocales } from "../../lib/tiempo.js";
 import { resolverQr } from "../catalogo/qr.js";
+import { ajustarPorReserva } from "../ranking/ajustes.js";
 import { incluirReserva, type ReservaConInclusiones } from "./presentacion.js";
 
 export type ResultadoUso = {
@@ -68,16 +69,17 @@ const ocupado = (restriccion: string | null) => {
   return new HttpError(409, "uso_activo", "Ya tienes otra reserva en uso. Registra su salida antes de entrar.");
 };
 
-/** Cambia el estado y registra el evento en la misma transacción. */
+/** Cambia el estado y registra el evento (y el ajuste de ranking, si corresponde) en la misma transacción. */
 async function transicion(
   db: Database,
   clock: Clock,
   reservaId: number,
   qrPlazaId: number,
   tipo: TipoEvento,
+  desde: EstadoReserva,
+  hacia: EstadoReserva,
+  despues?: (tx: Prisma.TransactionClient, registradoEn: Date) => Promise<void>,
 ): Promise<ResultadoUso | null> {
-  const desde = tipo === "entrada" ? "confirmada" : "en_uso";
-  const hacia = tipo === "entrada" ? "en_uso" : "finalizada";
   const registradoEn = clock();
   try {
     return await db.$transaction(async (tx) => {
@@ -86,6 +88,7 @@ async function transicion(
         return null;
       }
       await tx.eventoReserva.create({ data: { reservaId, tipo, qrPlazaId, registradoEn } });
+      await despues?.(tx, registradoEn);
       const reserva = await tx.reserva.findUniqueOrThrow({ where: { id: reservaId }, include: incluirReserva });
       return { reserva, evento: { tipo, registradoEn }, repetido: false };
     });
@@ -122,7 +125,11 @@ export async function registrarEntrada(
     throw new HttpError(
       409,
       "reserva_no_activa",
-      reserva.estado === "cancelada" ? "Esta reserva fue cancelada." : "Esta reserva ya terminó.",
+      reserva.estado === "cancelada"
+        ? "Esta reserva fue cancelada."
+        : reserva.estado === "ausente"
+          ? "La ventana de llegada terminó y la plaza se liberó."
+          : "Esta reserva ya terminó.",
     );
   }
 
@@ -144,21 +151,32 @@ export async function registrarEntrada(
 
   // Si otra lectura cambió el estado entre la validación y la transición, se informa su resultado.
   const resultado =
-    (await transicion(db, clock, reserva.id, qrPlazaId, "entrada")) ?? (await eventoExistente(db, reserva.id, "entrada"));
+    (await transicion(db, clock, reserva.id, qrPlazaId, "entrada", "confirmada", "en_uso")) ??
+    (await eventoExistente(db, reserva.id, "entrada"));
   if (!resultado) {
     throw new HttpError(409, "reserva_no_activa", "La reserva cambió de estado. Revisa Mi reserva.");
   }
   return resultado;
 }
 
-/** Check-out: QR vigente de la plaza en uso. Libera la plaza y conserva el historial. */
-export async function registrarSalida(db: Database, clock: Clock, lectura: Lectura): Promise<ResultadoUso> {
+/**
+ * Check-out: QR vigente de la plaza en uso. Libera la plaza y conserva el historial. Una salida dentro
+ * del plazo suma el ajuste de cumplimiento y una tardía resta. Si el proceso ya la marcó `vencida`, la
+ * salida se registra sin otro ajuste.
+ */
+export async function registrarSalida(
+  db: Database,
+  clock: Clock,
+  config: ReservasConfig,
+  ranking: RankingConfig,
+  lectura: Lectura,
+): Promise<ResultadoUso> {
   const { reserva, qrPlazaId } = await validarLectura(db, lectura);
   const previo = await eventoExistente(db, reserva.id, "salida");
   if (previo) {
     return previo;
   }
-  if (reserva.estado !== "en_uso") {
+  if (reserva.estado !== "en_uso" && reserva.estado !== "vencida") {
     throw new HttpError(
       409,
       "reserva_no_en_uso",
@@ -171,7 +189,20 @@ export async function registrarSalida(db: Database, clock: Clock, lectura: Lectu
   }
   // Si otra lectura cambió el estado entre la validación y la transición, se informa su resultado.
   const resultado =
-    (await transicion(db, clock, reserva.id, qrPlazaId, "salida")) ?? (await eventoExistente(db, reserva.id, "salida"));
+    (await transicion(
+      db,
+      clock,
+      reserva.id,
+      qrPlazaId,
+      "salida",
+      reserva.estado,
+      reserva.estado === "en_uso" ? "finalizada" : "vencida",
+      async (tx, registradoEn) => {
+        if (reserva.estado !== "en_uso") return;
+        const plazo = reserva.fin.getTime() + config.toleranciaSalidaMin * 60_000;
+        await ajustarPorReserva(tx, ranking, reserva, registradoEn.getTime() <= plazo ? "salida_a_tiempo" : "salida_tardia", registradoEn);
+      },
+    )) ?? (await eventoExistente(db, reserva.id, "salida"));
   if (!resultado) {
     throw new HttpError(409, "reserva_no_en_uso", "La reserva cambió de estado. Revisa Mi reserva.");
   }

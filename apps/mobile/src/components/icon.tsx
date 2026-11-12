@@ -34,6 +34,9 @@ const ICONOS = {
   cancel: { ios: "xmark.circle", android: "cancel" },
   key: { ios: "key", android: "key" },
   link: { ios: "link", android: "link" },
+  star: { ios: "star.fill", android: "star" },
+  up: { ios: "arrow.up.circle.fill", android: "trending_up" },
+  down: { ios: "arrow.down.circle.fill", android: "trending_down" },
   import: { ios: "square.and.arrow.down", android: "file_open" },
 } as const;
 

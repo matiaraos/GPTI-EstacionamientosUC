@@ -77,6 +77,10 @@ export default function CuentaScreen() {
         </>
       ) : null}
 
+      <Section title="Cumplimiento">
+        <ListRow icon="star" title="Mi puntaje" detail="Ranking e historial de ajustes" onPress={() => router.push("/puntaje")} />
+      </Section>
+
       <Section title="Clases">
         <ListRow icon="calendar" title="Mi horario" detail="Bloques semanales e importación .ics" onPress={() => router.push("/horario")} />
       </Section>

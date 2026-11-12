@@ -15,6 +15,12 @@ const configSchema = z.object({
   TOLERANCIA_LLEGADA_MIN: z.coerce.number().int().min(0).max(120).default(15),
   TOLERANCIA_SALIDA_MIN: z.coerce.number().int().min(0).max(120).default(10),
   PERIMETRO_PRUEBA: z.string().optional(),
+  RANKING_INICIAL: z.coerce.number().int().default(100),
+  RANKING_AUSENCIA: z.coerce.number().int().max(0).default(-10),
+  RANKING_VENCIMIENTO: z.coerce.number().int().max(0).default(-5),
+  RANKING_SALIDA_TARDIA: z.coerce.number().int().max(0).default(-3),
+  RANKING_SALIDA_A_TIEMPO: z.coerce.number().int().min(0).default(1),
+  VENCIMIENTOS_INTERVALO_S: z.coerce.number().int().min(0).default(60),
   MARGEN_PERIMETRO_M: z.coerce.number().min(0).max(1000).default(50),
 });
 
@@ -40,17 +46,32 @@ export type ReservasConfig = {
   margenPerimetroM: number;
 };
 
+/**
+ * Tabla de ajustes de ranking (RN-06 y RN-07). Valores propuestos y configurables, pendientes de
+ * confirmar para el piloto. Un error de lectura del QR no tiene ajuste.
+ */
+export type RankingConfig = {
+  puntajeInicial: number;
+  ausencia: number;
+  vencimiento: number;
+  salidaTardia: number;
+  salidaATiempo: number;
+};
+
 export type AppConfig = {
   port: number;
   adminOrigin: string;
   databaseUrl: string;
   auth: AuthConfig;
   reservas: ReservasConfig;
+  ranking: RankingConfig;
+  /** Cada cuántos segundos se procesan ausencias y vencimientos (0 = desactivado). */
+  vencimientosIntervaloS: number;
   correo: { smtpUrl: string | null; remitente: string };
 };
 
 /** Configuración que necesita `createApp`; el puerto, la base y el correo solo los usa el servidor. */
-export type RuntimeConfig = Omit<AppConfig, "port" | "databaseUrl" | "correo">;
+export type RuntimeConfig = Omit<AppConfig, "port" | "databaseUrl" | "correo" | "vencimientosIntervaloS">;
 
 export function parseEmailDomains(value: string): string[] {
   return value
@@ -103,6 +124,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       perimetroPrueba: leerPerimetro(values.PERIMETRO_PRUEBA),
       margenPerimetroM: values.MARGEN_PERIMETRO_M,
     },
+    ranking: {
+      puntajeInicial: values.RANKING_INICIAL,
+      ausencia: values.RANKING_AUSENCIA,
+      vencimiento: values.RANKING_VENCIMIENTO,
+      salidaTardia: values.RANKING_SALIDA_TARDIA,
+      salidaATiempo: values.RANKING_SALIDA_A_TIEMPO,
+    },
+    vencimientosIntervaloS: values.VENCIMIENTOS_INTERVALO_S,
     correo: { smtpUrl: values.SMTP_URL?.trim() || null, remitente: values.CORREO_REMITENTE },
   };
 }

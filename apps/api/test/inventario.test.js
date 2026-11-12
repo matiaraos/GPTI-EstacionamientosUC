@@ -34,6 +34,7 @@ beforeAll(async () => {
 }, 30_000);
 
 beforeEach(async () => {
+  await db.ajusteRanking.deleteMany();
   await db.reserva.deleteMany();
   await db.bloqueoPlaza.deleteMany();
   await db.autorizacionPreferente.deleteMany();

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import type { Clock } from "../../app.js";
-import type { ReservasConfig } from "../../config.js";
+import type { RankingConfig, ReservasConfig } from "../../config.js";
 import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
 import { parseInput } from "../../lib/validation.js";
@@ -11,7 +11,7 @@ import { reservar } from "./asignacion.js";
 import { incluirReserva, reservaPublica } from "./presentacion.js";
 import { registrarEntrada, registrarSalida, type ResultadoUso } from "./uso.js";
 
-type Deps = { db: Database; clock: Clock; config: ReservasConfig };
+type Deps = { db: Database; clock: Clock; config: ReservasConfig; ranking: RankingConfig };
 
 const claveSchema = z
   .string({ error: "Falta la clave de la solicitud (Idempotency-Key)." })
@@ -31,7 +31,7 @@ const salidaSchema = z.object({ qr: z.string({ error: "Escanea el código QR de 
 
 const respuestaUso = ({ reserva, evento }: ResultadoUso) => ({ reserva: reservaPublica(reserva), evento });
 
-export function crearRutasReservas({ db, clock, config }: Deps) {
+export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
   const router = Router();
   router.use("/reservas", requiereSesion(db, clock));
 
@@ -102,7 +102,9 @@ export function crearRutasReservas({ db, clock, config }: Deps) {
         "reserva_no_cancelable",
         reserva.estado === "en_uso"
           ? "Ya registraste tu llegada. Para liberar la plaza, registra tu salida."
-          : "Esta reserva ya terminó y no se puede cancelar.",
+          : reserva.estado === "ausente" || reserva.estado === "vencida"
+            ? "Esta reserva ya venció y no se puede cancelar."
+            : "Esta reserva ya terminó y no se puede cancelar.",
       );
     }
     response.json({ reserva: reservaPublica(reserva) });
@@ -120,7 +122,7 @@ export function crearRutasReservas({ db, clock, config }: Deps) {
   router.post("/reservas/:id/salida", async (request, response) => {
     const { id } = parseInput(idSchema, request.params);
     const datos = parseInput(salidaSchema, request.body);
-    const resultado = await registrarSalida(db, clock, { cuentaId: sesionDe(response).cuentaId, reservaId: id, ...datos });
+    const resultado = await registrarSalida(db, clock, config, ranking, { cuentaId: sesionDe(response).cuentaId, reservaId: id, ...datos });
     response.status(resultado.repetido ? 200 : 201).json(respuestaUso(resultado));
   });
 

@@ -6,7 +6,7 @@ export type DatosVisita = { fecha: string; llegada: string; salida: string; dest
 
 export type Reserva = {
   id: number;
-  estado: "confirmada" | "en_uso" | "finalizada" | "cancelada";
+  estado: "confirmada" | "en_uso" | "finalizada" | "cancelada" | "ausente" | "vencida";
   inicio: string;
   fin: string;
   fecha: string;

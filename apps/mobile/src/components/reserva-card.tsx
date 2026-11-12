@@ -11,10 +11,12 @@ const ESTADOS: Record<Reserva["estado"], { texto: string; icono: IconName }> = {
   en_uso: { texto: "En uso", icono: "car" },
   finalizada: { texto: "Finalizada", icono: "success" },
   cancelada: { texto: "Cancelada", icono: "cancel" },
+  ausente: { texto: "Sin llegada", icono: "error" },
+  vencida: { texto: "Salida vencida", icono: "error" },
 };
 
 function colorEstado(colors: Palette, estado: Reserva["estado"]) {
-  if (estado === "cancelada") return { fondo: colors.dangerSoft, texto: colors.danger };
+  if (estado === "cancelada" || estado === "ausente" || estado === "vencida") return { fondo: colors.dangerSoft, texto: colors.danger };
   if (estado === "en_uso") return { fondo: colors.warningSoft, texto: colors.warning };
   return { fondo: colors.successSoft, texto: colors.success };
 }

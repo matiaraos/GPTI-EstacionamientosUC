@@ -1,4 +1,4 @@
-import { Accessibility, Activity, Building2, Construction, LogOut, QrCode, SquareParking, Users } from "lucide-react";
+import { Accessibility, Activity, Building2, Construction, LogOut, QrCode, SquareParking, Trophy, Users } from "lucide-react";
 import { useState } from "react";
 import { Navigate, NavLink, Outlet } from "react-router";
 import { useSession } from "../session";
@@ -9,6 +9,7 @@ const secciones = [
   { to: "/bloqueos", label: "Bloqueos", icon: Construction, end: false },
   { to: "/destinos", label: "Edificios y salas", icon: Building2, end: false },
   { to: "/autorizaciones", label: "Preferentes", icon: Accessibility, end: false },
+  { to: "/ranking", label: "Ranking", icon: Trophy, end: false },
   { to: "/codigos-qr", label: "Códigos QR", icon: QrCode, end: false },
   { to: "/diagnostico", label: "Diagnóstico", icon: Activity, end: false },
 ];

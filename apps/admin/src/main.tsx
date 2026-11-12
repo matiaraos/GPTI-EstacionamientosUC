@@ -12,6 +12,7 @@ import { DiagnosticoPage } from "./pages/diagnostico";
 import { InventarioPage } from "./pages/inventario";
 import { AdminLayout } from "./pages/layout";
 import { LoginPage } from "./pages/login";
+import { RankingPage } from "./pages/ranking";
 import { SessionProvider } from "./session";
 import "./styles.css";
 
@@ -36,6 +37,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="bloqueos" element={<BloqueosPage />} />
               <Route path="destinos" element={<DestinosPage />} />
               <Route path="autorizaciones" element={<AutorizacionesPage />} />
+              <Route path="ranking" element={<RankingPage />} />
               <Route path="codigos-qr" element={<CodigosQrPage />} />
               <Route path="diagnostico" element={<DiagnosticoPage />} />
             </Route>

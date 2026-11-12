@@ -12,7 +12,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | En curso · [evidencia](#01b--evidencia) |
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Verificada · [evidencia](#02b--evidencia) |
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | En curso · [evidencia](#03b--evidencia) |
-| Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | Pendiente |
+| Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | En curso · [evidencia](#05b--evidencia) |
 | Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | Pendiente |
 | Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Pendiente |
 | Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | Pendiente |
@@ -149,3 +149,18 @@ Rama `tramo/03b-horario`. Pruebas en `apps/api/test/horario.test.js` contra Post
 | App: horario, editor e importación | Compilación | Cuenta → Mi horario: bloques por día, editor con día, horas y destino, e importación con `expo-document-picker` y vista previa donde se elige el destino de los bloques dudosos y se agrega o reemplaza el horario. `tsc` y `expo export` pasan. **Pendiente**: recorrer el flujo en el teléfono. |
 
 **Pendiente para piloto** · Validar un `.ics` representativo y el mapeo de sus ubicaciones. Una integración directa con sistemas UC requiere autorización.
+
+### 05B · Evidencia
+
+Rama `tramo/05b-ranking`. Pruebas en `apps/api/test/ranking.test.js` contra PostgreSQL real con reloj fijo. Estados nuevos `ausente` y `vencida` (liberan capacidad) y `AjusteRanking` con `claveOrigen` única. Tabla de ajustes configurable: inicial 100, ausencia −10, vencimiento −5, salida tardía −3 y salida a tiempo +1. `procesarVencimientos(ahora)` corre cada `VENCIMIENTOS_INTERVALO_S` en la API y desde el panel.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Una ausencia o un vencimiento genera el estado y el ajuste correctos una sola vez | Verificado (API) | Sin check-in a las 09:15 sigue confirmada; a las 09:16 queda `ausente` con −10. Sin salida a las 10:11 (fin 10:00 + 10 min) queda `vencida` con −5. Repetir el proceso, también tres veces en paralelo, no cambia nada. Estado y ajuste se escriben en la misma transacción. |
+| Liberar capacidad en el vencimiento | Verificado (API) | Tras la ausencia, otra cuenta obtiene la misma plaza en el resto del intervalo; la reserva ya no admite entrada ni cancelación. Una reserva vencida libera el uso activo y aún admite registrar la salida sin otro ajuste. |
+| Una salida a tiempo queda diferenciada | Verificado (API) | Salida a tiempo → `finalizada` con +1; salida tardía antes del proceso → `finalizada` con −3; sin salida → `vencida` con −5. |
+| Un error de lectura no sanciona | Verificado (API) | QR ilegible y QR de otra plaza no generan ajustes ni cambian la reserva. |
+| El mal uso requiere validación administrativa | Verificado (API) | Solo `POST /admin/cuentas/:id/ranking/rectificaciones` (rol `admin`, justificación obligatoria e `Idempotency-Key`) registra sanciones manuales, con su autor; un usuario recibe `403` y el reintento no duplica. |
+| Puntaje e historial con motivo y reserva | Verificado (API) · Compilación (app y panel) | `GET /ranking` devuelve puntaje e historial con motivo y reserva; la persona ve «Administración» como autor de una rectificación. App: Cuenta → Mi puntaje. Panel: Ranking con historial, rectificación y proceso manual. `tsc`, `expo export` y `vite build` pasan. **Pendiente**: revisar la pantalla en el teléfono. |
+
+**Pendiente para piloto** · Confirmar la tabla de ajustes y niveles RN-06 y RN-07. Los bloqueos por incidentes verificados se agregan en 08A.

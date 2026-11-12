@@ -11,6 +11,7 @@ export const testConfig = {
     recuperacionUrl: "miestacionamientouc://restablecer",
   },
   reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10, perimetroPrueba: null, margenPerimetroM: 50 },
+  ranking: { puntajeInicial: 100, ausencia: -10, vencimiento: -5, salidaTardia: -3, salidaATiempo: 1 },
 };
 
 /** Reloj controlable: `clock.set(fecha)` y `clock.advance(ms)`. */

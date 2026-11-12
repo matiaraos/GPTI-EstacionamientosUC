@@ -11,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-type Options = { method?: string; body?: unknown; token?: string | null; timeoutMs?: number };
+type Options = { method?: string; body?: unknown; token?: string | null; timeoutMs?: number; headers?: Record<string, string> };
 
 let onUnauthorized: (() => void) | undefined;
 
@@ -31,6 +31,7 @@ export async function apiRequest<T>(path: string, options: Options = {}): Promis
         Accept: "application/json",
         ...(options.body !== undefined && { "Content-Type": "application/json" }),
         ...(options.token && { Authorization: `Bearer ${options.token}` }),
+        ...options.headers,
       },
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: AbortSignal.timeout(options.timeoutMs ?? 10_000),
@@ -63,6 +64,7 @@ export type Cuenta = {
   rol: "usuario" | "admin";
   activa?: boolean;
   creadaEn?: string;
+  puntaje?: number;
   vehiculos: { id: number; patente: string }[];
 };
 
