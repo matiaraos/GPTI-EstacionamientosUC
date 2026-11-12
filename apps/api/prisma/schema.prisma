@@ -91,29 +91,62 @@ enum TipoPlaza {
 }
 
 model Plaza {
-  id     Int       @id @default(autoincrement())
-  zonaId Int
-  zona   Zona      @relation(fields: [zonaId], references: [id], onDelete: Restrict)
-  codigo String
-  tipo   TipoPlaza @default(regular)
-  activa   Boolean   @default(true)
+  id       Int            @id @default(autoincrement())
+  zonaId   Int
+  zona     Zona           @relation(fields: [zonaId], references: [id], onDelete: Restrict)
+  codigo   String
+  tipo     TipoPlaza      @default(regular)
+  activa   Boolean        @default(true)
   qrs      QrPlaza[]
   reservas Reserva[]
+  bloqueos BloqueoPlaza[]
 
   @@unique([zonaId, codigo])
 }
 
 /// Código QR de una plaza. Hay como máximo uno vigente por plaza (índice parcial en la migración).
 model QrPlaza {
-  id            Int       @id @default(autoincrement())
+  id            Int             @id @default(autoincrement())
   plazaId       Int
-  plaza         Plaza     @relation(fields: [plazaId], references: [id], onDelete: Restrict)
-  identificador String    @unique
-  creadoEn      DateTime  @default(now()) @db.Timestamptz(3)
-  revocadoEn    DateTime? @db.Timestamptz(3)
+  plaza         Plaza           @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  identificador String          @unique
+  creadoEn      DateTime        @default(now()) @db.Timestamptz(3)
+  revocadoEn    DateTime?       @db.Timestamptz(3)
   eventos       EventoReserva[]
 
   @@index([plazaId])
+}
+
+/// Restricción temporal de una plaza (mantención, evento, incidente). Excluye la plaza de nuevas
+/// asignaciones en `[inicio, fin)` mientras no se levante. Se conserva como historial.
+model BloqueoPlaza {
+  id          Int       @id @default(autoincrement())
+  plazaId     Int
+  plaza       Plaza     @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  inicio      DateTime  @db.Timestamptz(3)
+  fin         DateTime  @db.Timestamptz(3)
+  motivo      String
+  creadoPorId Int
+  creadoPor   Cuenta    @relation("BloqueosCreados", fields: [creadoPorId], references: [id], onDelete: Restrict)
+  creadoEn    DateTime  @default(now()) @db.Timestamptz(3)
+  levantadoEn DateTime? @db.Timestamptz(3)
+
+  @@index([plazaId, inicio])
+}
+
+/// Habilitación para usar plazas preferentes (SC-002). Solo guarda el estado administrativo y su
+/// vigencia: no se registran certificados ni motivos médicos. Es válida si no está revocada y
+/// `vigenteHasta` es posterior al instante evaluado.
+model AutorizacionPreferente {
+  cuentaId      Int       @id
+  cuenta        Cuenta    @relation("Autorizacion", fields: [cuentaId], references: [id], onDelete: Cascade)
+  vigenteHasta  DateTime  @db.Timestamptz(3)
+  revocadaEn    DateTime? @db.Timestamptz(3)
+  otorgadaEn    DateTime  @db.Timestamptz(3)
+  otorgadaPorId Int
+  otorgadaPor   Cuenta    @relation("AutorizacionesOtorgadas", fields: [otorgadaPorId], references: [id], onDelete: Restrict)
+
+  @@index([otorgadaPorId])
 }
 
 enum Rol {
@@ -123,25 +156,28 @@ enum Rol {
 
 /// Cuenta de la comunidad UC. El correo se guarda normalizado (minúsculas y sin espacios).
 model Cuenta {
-  id             Int        @id @default(autoincrement())
-  correo         String     @unique
-  hashContrasena String
-  rol            Rol        @default(usuario)
-  activa         Boolean    @default(true)
-  creadaEn       DateTime   @default(now()) @db.Timestamptz(3)
-  vehiculos      Vehiculo[]
-  sesiones       Sesion[]
-  reservas       Reserva[]
-  recuperaciones Recuperacion[]
+  id                      Int                      @id @default(autoincrement())
+  correo                  String                   @unique
+  hashContrasena          String
+  rol                     Rol                      @default(usuario)
+  activa                  Boolean                  @default(true)
+  creadaEn                DateTime                 @default(now()) @db.Timestamptz(3)
+  vehiculos               Vehiculo[]
+  sesiones                Sesion[]
+  reservas                Reserva[]
+  recuperaciones          Recuperacion[]
+  bloqueosCreados         BloqueoPlaza[]           @relation("BloqueosCreados")
+  autorizacion            AutorizacionPreferente?  @relation("Autorizacion")
+  autorizacionesOtorgadas AutorizacionPreferente[] @relation("AutorizacionesOtorgadas")
 }
 
 /// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
 model Vehiculo {
-  id       Int      @id @default(autoincrement())
+  id       Int       @id @default(autoincrement())
   cuentaId Int
-  cuenta   Cuenta   @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
-  patente  String   @unique
-  creadoEn DateTime @default(now()) @db.Timestamptz(3)
+  cuenta   Cuenta    @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  patente  String    @unique
+  creadoEn DateTime  @default(now()) @db.Timestamptz(3)
   reservas Reserva[]
 
   @@index([cuentaId])

@@ -6,6 +6,7 @@ import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import type { Database } from "./lib/prisma.js";
 import { crearRutasCatalogo } from "./modules/catalogo/rutas.js";
 import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
+import { crearRutasInventario } from "./modules/inventario/rutas.js";
 import { crearRutasReservas } from "./modules/reservas/rutas.js";
 import { crearRutasVisitas } from "./modules/visitas/rutas.js";
 
@@ -49,6 +50,7 @@ export function createApp(deps: AppDeps) {
   app.use(crearRutasCuentas({ db, clock, auth: config.auth, mailer }));
   app.use(crearRutasCatalogo({ db, clock }));
   app.use(crearRutasVisitas({ db, clock }));
+  app.use(crearRutasInventario({ db, clock }));
   app.use(crearRutasReservas({ db, clock, config: config.reservas }));
 
   app.use(notFoundHandler);

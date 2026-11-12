@@ -733,3 +733,132 @@ th {
     transition: none !important;
   }
 }
+
+/* Formularios y acciones del inventario */
+button.small {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: 0.85rem;
+}
+
+button.danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+button.danger:hover:not(:disabled) {
+  color: var(--on-accent);
+  background: var(--danger);
+}
+
+select,
+.input input[type="time"],
+.input input[type="date"],
+.input input[type="datetime-local"] {
+  font: inherit;
+  color: var(--text);
+}
+
+select {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-weight: 400;
+}
+
+select.compact {
+  min-height: 32px;
+  font-size: 0.85rem;
+}
+
+.form-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.row-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+tbody tr.selected {
+  background: var(--accent-soft);
+}
+
+tbody tr.clickable {
+  cursor: pointer;
+}
+
+.badge.warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+.schedule {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 110px auto 1fr 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.schedule-row .input {
+  min-height: 36px;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 500;
+}
+
+.affected {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

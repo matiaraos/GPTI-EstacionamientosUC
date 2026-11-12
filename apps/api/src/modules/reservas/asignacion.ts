@@ -24,8 +24,8 @@ const minutos = (hora: string) => {
 };
 
 /**
- * Plazas regulares activas de bloques activos, abiertos durante toda la visita y sin reservas que
- * ocupen capacidad en el intervalo. Orden: primero distancias por la red peatonal y luego en línea
+ * Plazas regulares activas de bloques activos, abiertos durante toda la visita, sin bloqueos vigentes
+ * y sin reservas que ocupen capacidad en el intervalo. Orden: primero distancias por la red peatonal y luego en línea
  * recta, por metros, por ID de bloque y por ID de plaza. Los bloques sin distancia quedan al final.
  */
 export async function buscarCandidatas(db: Cliente, visita: VisitaValidada): Promise<Candidata[]> {
@@ -40,6 +40,12 @@ export async function buscarCandidatas(db: Cliente, visita: VisitaValidada): Pro
       AND h."cierraMinuto" >= ${minutos(visita.salida)}
     LEFT JOIN "CercaniaBloque" c ON c."zonaId" = z."id" AND c."destinoId" = ${visita.destino.id}
     WHERE p."activa" AND p."tipo" = 'regular'
+      AND NOT EXISTS (
+        SELECT 1 FROM "BloqueoPlaza" b
+        WHERE b."plazaId" = p."id"
+          AND b."levantadoEn" IS NULL
+          AND tstzrange(b."inicio", b."fin", '[)') && tstzrange(${visita.inicio}::timestamptz, ${visita.fin}::timestamptz, '[)')
+      )
       AND NOT EXISTS (
         SELECT 1 FROM "Reserva" r
         WHERE r."plazaId" = p."id"

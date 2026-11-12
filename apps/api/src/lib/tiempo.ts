@@ -68,3 +68,21 @@ export function instanteLocal(fecha: string, hora: string): Date | null {
   }
   return null;
 }
+
+const FECHA_HORA = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
+
+/** Instante de una fecha y hora locales escritas como `AAAA-MM-DDTHH:mm` (campo `datetime-local`). */
+export function instanteFechaHora(valor: string): Date | null {
+  const m = FECHA_HORA.exec(valor);
+  if (!m || !esFechaValida(m[1]) || !esHoraValida(m[2])) {
+    return null;
+  }
+  return instanteLocal(m[1], m[2]);
+}
+
+/** Inicio del día siguiente a una fecha local: el fin exclusivo de un plazo «hasta el día X». */
+export function finDelDia(fecha: string): Date | null {
+  const [anio, mes, dia] = fecha.split("-").map(Number);
+  const siguiente = new Date(Date.UTC(anio, mes - 1, dia + 1));
+  return instanteLocal(siguiente.toISOString().slice(0, 10), "00:00") ?? instanteLocal(siguiente.toISOString().slice(0, 10), "01:00");
+}
