@@ -7,7 +7,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Acceso y datos | [01A](01-cuentas.md#01a--acceso-y-base-visual) | Acceso y base visual | RF-01–02 | Base del repo | En curso · [evidencia](#01a--evidencia) |
 | Acceso y datos | [02A](02-inventario.md#02a--catálogo-geográfico-y-plazas-de-prueba) | Catálogo de la demo | RF-18 | 01A | Verificada · [evidencia](#02a--evidencia) |
 | Acceso y datos | [03A](03-horarios.md#03a--destino-y-permanencia) | Destino y permanencia | RF-05 | 01A | En curso · [evidencia](#03a--evidencia) |
-| Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | Pendiente |
+| Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | En curso · [evidencia](#04a--evidencia) |
 | Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | Pendiente |
 | Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | Pendiente |
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Pendiente |
@@ -72,3 +72,20 @@ Rama `tramo/03a-destino`. Pruebas en `apps/api/test/visitas.test.js` contra Post
 | Zona horaria de Santiago consistente | Verificado (API) | Conversión en horario de verano e invierno, hora inexistente del 6 de septiembre de 2026 rechazada y hora repetida del 4 de abril resuelta a la primera ocurrencia. La app envía horas de pared de Santiago y la API las convierte. |
 | Buscar por código o nombre y enviar el ID del registro | Pendiente de dispositivo | Pantalla «Elegir destino» con búsqueda en `GET /destinos`; muestra el ID de origen para distinguir homónimos y envía el ID interno. |
 | Conservar los datos ingresados tras un error | Pendiente de dispositivo | El borrador vive en `SolicitudProvider` mientras la sesión está abierta; los errores se muestran junto a cada campo. Compilación: `tsc` y `expo export` sin errores. |
+
+### 04A · Evidencia
+
+Rama `tramo/04a-reserva`. Pruebas en `apps/api/test/reservas.test.js` contra PostgreSQL real. Restricciones `EXCLUDE USING gist` (con `btree_gist`) sobre `tstzrange(inicio, fin, '[)')` por plaza, cuenta y vehículo para reservas `confirmada` o `en_uso`.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Primer bloque lleno y segundo con plaza: confirma en el segundo | Verificado (API) | Tres solicitudes para ED113: A1 y A2 en PARKING-7 y luego B1 en PARKING-5. |
+| Ruta peatonal antes que línea recta | Verificado (API) | Con PARKING-7 a 50 m en línea recta y PARKING-5 a 400 m a pie, asigna PARKING-5. |
+| Solo línea recta: la más cercana, con el método etiquetado | Verificado (API) | Responde `metodoDistancia: "linea_recta"` con el bloque de menos metros; la app lo muestra como «estimación». |
+| Hay cupo pero faltan todas las distancias | Verificado (API) | `422 sin_cercania` sin crear reserva. Un bloque sin distancia se omite del orden. |
+| Sin cupo, se informa sin crear reserva | Verificado (API) | `409 sin_cupo` con las 5 plazas ocupadas, fuera del horario del bloque o con plaza inactiva excluida. |
+| Cancelar libera el intervalo | Verificado (API) | Tras cancelar, otra cuenta obtiene la misma plaza; cancelar dos veces no cambia nada; no se cancela una reserva ajena ni una en uso. |
+| Concurrencia sin solapes por plaza, cuenta ni patente | Verificado (PostgreSQL) | 9 cuentas simultáneas: 5 reservas en plazas distintas y 4 `sin_cupo`. Tres solicitudes simultáneas de una cuenta: una confirmada. Inserciones directas en la base que solapan plaza o vehículo se rechazan (23P01). |
+| Intervalos contiguos admitidos | Verificado (PostgreSQL) | 09:00–12:00 y 12:00–14:00 en la misma plaza y cuenta. |
+| El reintento devuelve la misma reserva | Verificado (API) | Misma `Idempotency-Key`: `200` con la misma reserva, también con 6 reintentos simultáneos; la clave con otros datos se rechaza. Probado además con `curl` contra la API local (reserva, reintento y cancelación). |
+| App: bloque, plaza, horario y distancia, o falta de cupo | Pendiente de dispositivo | Pantalla «Reservar» con resultado y pestaña «Mi reserva» con cancelación. Compilación: `tsc` y `expo export` sin errores. |

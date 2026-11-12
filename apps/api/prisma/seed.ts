@@ -22,7 +22,7 @@ async function main() {
     throw new Error(`ADMIN_SEED_EMAIL debe usar un dominio de ALLOWED_EMAIL_DOMAINS (${config.auth.allowedEmailDomains.join(", ")}).`);
   }
 
-  const db = createDatabase(config.databaseUrl);
+  const db = createDatabase(config.databaseUrl, { statementTimeoutMs: 30_000 });
   try {
     const hashContrasena = await bcrypt.hash(contrasena, config.auth.bcryptRounds);
     await db.cuenta.upsert({

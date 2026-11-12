@@ -7,6 +7,8 @@ const configSchema = z.object({
   ALLOWED_EMAIL_DOMAINS: z.string().default("demo.uc.cl"),
   SESSION_TTL_HOURS: z.coerce.number().positive().default(720),
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
+  TOLERANCIA_LLEGADA_MIN: z.coerce.number().int().min(0).max(120).default(15),
+  TOLERANCIA_SALIDA_MIN: z.coerce.number().int().min(0).max(120).default(10),
 });
 
 export type AuthConfig = {
@@ -16,11 +18,19 @@ export type AuthConfig = {
   bcryptRounds: number;
 };
 
+export type ReservasConfig = {
+  /** Minutos antes y después de la hora de llegada en que se admite el check-in (05A). */
+  toleranciaLlegadaMin: number;
+  /** Minutos después de la hora de salida en que se admite el check-out (05A). */
+  toleranciaSalidaMin: number;
+};
+
 export type AppConfig = {
   port: number;
   adminOrigin: string;
   databaseUrl: string;
   auth: AuthConfig;
+  reservas: ReservasConfig;
 };
 
 /** Configuración que necesita `createApp`; el puerto y la URL de la base solo los usa el servidor. */
@@ -52,6 +62,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       allowedEmailDomains,
       sessionTtlHours: values.SESSION_TTL_HOURS,
       bcryptRounds: values.BCRYPT_ROUNDS,
+    },
+    reservas: {
+      toleranciaLlegadaMin: values.TOLERANCIA_LLEGADA_MIN,
+      toleranciaSalidaMin: values.TOLERANCIA_SALIDA_MIN,
     },
   };
 }

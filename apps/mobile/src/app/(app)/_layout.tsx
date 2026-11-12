@@ -9,6 +9,10 @@ export default function AppLayout() {
           <NativeTabs.Trigger.Icon sf="parkingsign.circle" md="local_parking" />
           <NativeTabs.Trigger.Label>Reservar</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="(mi-reserva)">
+          <NativeTabs.Trigger.Icon sf="car.fill" md="directions_car" />
+          <NativeTabs.Trigger.Label>Mi reserva</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
         <NativeTabs.Trigger name="(cuenta)">
           <NativeTabs.Trigger.Icon sf="person.crop.circle" md="account_circle" />
           <NativeTabs.Trigger.Label>Cuenta</NativeTabs.Trigger.Label>

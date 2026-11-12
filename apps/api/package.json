@@ -49,6 +49,7 @@
     "testMatch": [
       "<rootDir>/test/**/*.test.js"
     ],
-    "globalSetup": "<rootDir>/test/helpers/global-setup.js"
+    "globalSetup": "<rootDir>/test/helpers/global-setup.js",
+    "testTimeout": 20000
   }
 }
