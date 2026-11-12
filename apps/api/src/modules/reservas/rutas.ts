@@ -66,6 +66,7 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
    * reintento con la misma clave y los mismos datos devuelve la misma reserva (200).
    */
   router.post("/reservas", async (request, response) => {
+    const recibida = Date.now();
     const { cuentaId } = sesionDe(response);
     const claveIdempotencia = clave(request);
     const datos = parseInput(visitaSchema.extend({ vehiculoId: z.coerce.number().int().positive().optional() }), request.body);
@@ -75,6 +76,7 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
     const puntaje = await puntajeDe(db, cuentaId, ranking);
     const { reserva, reintento } = await coordinador.encolar(visita.fecha, puntaje, () =>
       reservar(db, clock, config, { cuentaId, vehiculoId: vehiculo.id, visita, claveIdempotencia }),
+      recibida,
     );
     response.status(reintento ? 200 : 201).json({ reserva: reservaPublica(reserva) });
   });
@@ -84,6 +86,7 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
    * original se conserva sin cambios.
    */
   router.post("/reservas/:id/cambiar", async (request, response) => {
+    const recibida = Date.now();
     const { id } = parseInput(idSchema, request.params);
     const { cuentaId } = sesionDe(response);
     const claveIdempotencia = clave(request);
@@ -96,6 +99,7 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
     const puntaje = await puntajeDe(db, cuentaId, ranking);
     const { reserva, reintento } = await coordinador.encolar(visita.fecha, puntaje, () =>
       cambiarReserva(db, clock, config, { reservaId: id, cuentaId, vehiculoId: original.vehiculoId, visita, claveIdempotencia }),
+      recibida,
     );
     if (!reintento) await atender();
     response.status(reintento ? 200 : 201).json({ reserva: reservaPublica(reserva) });
