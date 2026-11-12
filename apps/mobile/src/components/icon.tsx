@@ -32,6 +32,8 @@ const ICONOS = {
   eyeOff: { ios: "eye.slash", android: "visibility_off" },
   empty: { ios: "calendar.badge.exclamationmark", android: "event_busy" },
   cancel: { ios: "xmark.circle", android: "cancel" },
+  key: { ios: "key", android: "key" },
+  link: { ios: "link", android: "link" },
 } as const;
 
 export type IconName = keyof typeof ICONOS;

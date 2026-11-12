@@ -72,6 +72,7 @@ export default function IniciarSesionScreen() {
 
       <View style={{ gap: spacing.sm }}>
         <Button title="Iniciar sesión" onPress={submit} loading={login.isPending} />
+        <Button title="¿Olvidaste tu contraseña?" variant="ghost" onPress={() => router.push({ pathname: "/recuperar", params: { correo } })} />
         <Button title="Crear una cuenta" variant="secondary" onPress={() => router.push("/registro")} />
       </View>
 

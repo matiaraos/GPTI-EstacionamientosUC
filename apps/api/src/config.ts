@@ -8,6 +8,10 @@ const configSchema = z.object({
   ALLOWED_EMAIL_DOMAINS: z.string().default("demo.uc.cl"),
   SESSION_TTL_HOURS: z.coerce.number().positive().default(720),
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
+  RECUPERACION_TTL_MIN: z.coerce.number().int().min(5).max(1440).default(30),
+  RECUPERACION_URL: z.string().default("miestacionamientouc://restablecer"),
+  SMTP_URL: z.string().optional(),
+  CORREO_REMITENTE: z.string().default("MiEstacionamientoUC <no-responder@demo.uc.cl>"),
   TOLERANCIA_LLEGADA_MIN: z.coerce.number().int().min(0).max(120).default(15),
   TOLERANCIA_SALIDA_MIN: z.coerce.number().int().min(0).max(120).default(10),
   PERIMETRO_PRUEBA: z.string().optional(),
@@ -19,6 +23,10 @@ export type AuthConfig = {
   allowedEmailDomains: string[];
   sessionTtlHours: number;
   bcryptRounds: number;
+  /** Vigencia del enlace de recuperación de contraseña, en minutos (01B). */
+  recuperacionTtlMin: number;
+  /** Enlace que abre la app en la pantalla para elegir la nueva contraseña; se le agrega `?token=`. */
+  recuperacionUrl: string;
 };
 
 export type ReservasConfig = {
@@ -38,10 +46,11 @@ export type AppConfig = {
   databaseUrl: string;
   auth: AuthConfig;
   reservas: ReservasConfig;
+  correo: { smtpUrl: string | null; remitente: string };
 };
 
-/** Configuración que necesita `createApp`; el puerto y la URL de la base solo los usa el servidor. */
-export type RuntimeConfig = Omit<AppConfig, "port" | "databaseUrl">;
+/** Configuración que necesita `createApp`; el puerto, la base y el correo solo los usa el servidor. */
+export type RuntimeConfig = Omit<AppConfig, "port" | "databaseUrl" | "correo">;
 
 export function parseEmailDomains(value: string): string[] {
   return value
@@ -85,6 +94,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       allowedEmailDomains,
       sessionTtlHours: values.SESSION_TTL_HOURS,
       bcryptRounds: values.BCRYPT_ROUNDS,
+      recuperacionTtlMin: values.RECUPERACION_TTL_MIN,
+      recuperacionUrl: values.RECUPERACION_URL,
     },
     reservas: {
       toleranciaLlegadaMin: values.TOLERANCIA_LLEGADA_MIN,
@@ -92,5 +103,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       perimetroPrueba: leerPerimetro(values.PERIMETRO_PRUEBA),
       margenPerimetroM: values.MARGEN_PERIMETRO_M,
     },
+    correo: { smtpUrl: values.SMTP_URL?.trim() || null, remitente: values.CORREO_REMITENTE },
   };
 }

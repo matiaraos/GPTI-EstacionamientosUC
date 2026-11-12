@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import type { RuntimeConfig } from "./config.js";
+import { crearMailer, type Mailer } from "./lib/correo.js";
 import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import type { Database } from "./lib/prisma.js";
 import { crearRutasCatalogo } from "./modules/catalogo/rutas.js";
@@ -15,6 +16,8 @@ export type AppDeps = {
   db: Database;
   /** Reloj del servidor. Las pruebas lo reemplazan para fijar la hora. */
   clock?: Clock;
+  /** Canal de correo (recuperación de contraseña). Por defecto escribe los correos en la consola. */
+  mailer?: Mailer;
   /** Comprobación de `/ready`. Por defecto consulta la tabla creada por la migración inicial. */
   checkDatabase?: () => Promise<unknown>;
 };
@@ -22,6 +25,7 @@ export type AppDeps = {
 export function createApp(deps: AppDeps) {
   const { config, db } = deps;
   const clock = deps.clock ?? (() => new Date());
+  const mailer = deps.mailer ?? crearMailer(null, "");
   const checkDatabase = deps.checkDatabase ?? (() => db.zona.findFirst({ select: { id: true } }));
 
   const app = express();
@@ -42,7 +46,7 @@ export function createApp(deps: AppDeps) {
     }
   });
 
-  app.use(crearRutasCuentas({ db, clock, auth: config.auth }));
+  app.use(crearRutasCuentas({ db, clock, auth: config.auth, mailer }));
   app.use(crearRutasCatalogo({ db, clock }));
   app.use(crearRutasVisitas({ db, clock }));
   app.use(crearRutasReservas({ db, clock, config: config.reservas }));

@@ -132,6 +132,7 @@ model Cuenta {
   vehiculos      Vehiculo[]
   sesiones       Sesion[]
   reservas       Reserva[]
+  recuperaciones Recuperacion[]
 }
 
 /// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
@@ -155,6 +156,20 @@ model Sesion {
   creadaEn   DateTime  @default(now()) @db.Timestamptz(3)
   venceEn    DateTime  @db.Timestamptz(3)
   revocadaEn DateTime? @db.Timestamptz(3)
+
+  @@index([cuentaId])
+}
+
+/// Enlace de recuperación de contraseña. Solo se guarda el hash SHA-256 del token enviado por correo.
+/// Se consume una sola vez: `usadoEn` marca el uso o la anulación al usarse otro enlace de la cuenta.
+model Recuperacion {
+  id        Int       @id @default(autoincrement())
+  cuentaId  Int
+  cuenta    Cuenta    @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  hashToken String    @unique
+  creadaEn  DateTime  @default(now()) @db.Timestamptz(3)
+  venceEn   DateTime  @db.Timestamptz(3)
+  usadoEn   DateTime? @db.Timestamptz(3)
 
   @@index([cuentaId])
 }

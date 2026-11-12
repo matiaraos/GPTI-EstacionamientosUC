@@ -7,6 +7,8 @@ export const testConfig = {
     sessionTtlHours: 24,
     // Costo mínimo de bcrypt para que las pruebas sean rápidas.
     bcryptRounds: 4,
+    recuperacionTtlMin: 30,
+    recuperacionUrl: "miestacionamientouc://restablecer",
   },
   reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10, perimetroPrueba: null, margenPerimetroM: 50 },
 };
@@ -38,4 +40,15 @@ export async function registrarEIniciar(app, datos = datosRegistro()) {
     .send({ correo: datos.correo, contrasena: datos.contrasena })
     .expect(201);
   return response.body.token;
+}
+
+/** Canal de correo en memoria: guarda los correos enviados en `mailer.enviados`. */
+export function createMailer() {
+  const enviados = [];
+  return {
+    enviados,
+    async enviar(correo) {
+      enviados.push(correo);
+    },
+  };
 }
