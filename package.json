@@ -19,5 +19,13 @@
     "db:migrate": "npm run db:migrate -w @miestacionamientouc/api",
     "db:deploy": "npm run db:deploy -w @miestacionamientouc/api",
     "db:seed": "npm run db:seed -w @miestacionamientouc/api"
+  },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
+  },
+  "devDependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   }
 }

@@ -1,13 +1,14 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Linking, ScrollView, View } from "react-native";
 import { describeError } from "@/api/errors";
-import { registrarEntrada, registrarSalida, type ResultadoUso } from "@/api/reservas";
+import { obtenerReserva, registrarEntrada, registrarSalida, type ResultadoUso } from "@/api/reservas";
 import { Button } from "@/components/button";
 import { Notice } from "@/components/notice";
+import { PlazaBanner } from "@/components/plaza-banner";
 import { TextField } from "@/components/text-field";
 import { ThemedText } from "@/components/themed-text";
 import { useSession } from "@/session/session-provider";
@@ -36,6 +37,13 @@ export default function EscanearScreen() {
   const params = useLocalSearchParams<{ reserva: string; tipo: "entrada" | "salida" }>();
   const reservaId = Number(params.reserva);
   const esEntrada = params.tipo !== "salida";
+  // La plaza se muestra destacada para que la persona sepa qué QR escanear.
+  const reserva = useQuery({
+    queryKey: ["reservas", reservaId],
+    queryFn: () => obtenerReserva(token!, reservaId),
+    enabled: Boolean(token) && Number.isFinite(reservaId),
+  });
+  const plaza = reserva.data?.reserva;
   const [permiso, pedirPermiso] = useCameraPermissions();
   const [estado, setEstado] = useState<Estado>({ fase: "escaneando" });
   const [codigo, setCodigo] = useState("");
@@ -90,8 +98,16 @@ export default function EscanearScreen() {
       contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}
     >
       <Stack.Screen options={{ title: titulo }} />
+      {plaza ? (
+        <PlazaBanner
+          codigo={plaza.plaza.codigo}
+          bloque={plaza.zona.nombre}
+          instruccion={`Escanea el QR de la plaza ${plaza.plaza.codigo}`}
+        />
+      ) : null}
       <ThemedText variant="subhead">
-        Apunta la cámara al código QR de tu plaza.{esEntrada ? " También usaremos tu ubicación para confirmar que estás en el campus." : ""}
+        {plaza ? `Apunta la cámara al código QR pegado en la plaza ${plaza.plaza.codigo}.` : "Apunta la cámara al código QR de tu plaza."}
+        {esEntrada ? " También usaremos tu ubicación para confirmar que estás en el campus." : ""}
       </ThemedText>
 
       <View

@@ -45,7 +45,10 @@ export default function ReservarScreen() {
   if (reservar.data) {
     return (
       <FormScreen>
-        <Notice tone="info" message="Reserva confirmada. Al llegar, escanea el código QR de tu plaza." />
+        <Notice
+          tone="info"
+          message={`Reserva confirmada. Al llegar, escanea el QR de la plaza ${reservar.data.reserva.plaza.codigo} en ${reservar.data.reserva.zona.nombre}.`}
+        />
         <ReservaCard reserva={reservar.data.reserva} />
         <Button title="Ver mi reserva" onPress={() => router.navigate("/mi-reserva")} />
         <Button title="Nueva solicitud" variant="secondary" onPress={() => reservar.reset()} />
