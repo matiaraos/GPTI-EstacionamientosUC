@@ -11,6 +11,7 @@ import { useSession } from "@/session/session-provider";
 import { spacing } from "@/theme";
 
 function Acciones({ reserva }: { reserva: Reserva }) {
+  const router = useRouter();
   const { token } = useSession();
   const queryClient = useQueryClient();
   const cancelar = useMutation({
@@ -28,7 +29,19 @@ function Acciones({ reserva }: { reserva: Reserva }) {
     <View style={{ gap: spacing.sm }}>
       {cancelar.error ? <Notice message={describeError(cancelar.error).message ?? "No se pudo cancelar."} /> : null}
       {reserva.estado === "confirmada" ? (
-        <Button title="Cancelar reserva" variant="destructive" onPress={confirmar} loading={cancelar.isPending} />
+        <>
+          <Button
+            title="Registrar llegada"
+            onPress={() => router.push({ pathname: "/escanear", params: { reserva: reserva.id, tipo: "entrada" } })}
+          />
+          <Button title="Cancelar reserva" variant="destructive" onPress={confirmar} loading={cancelar.isPending} />
+        </>
+      ) : null}
+      {reserva.estado === "en_uso" ? (
+        <Button
+          title="Registrar salida"
+          onPress={() => router.push({ pathname: "/escanear", params: { reserva: reserva.id, tipo: "salida" } })}
+        />
       ) : null}
     </View>
   );

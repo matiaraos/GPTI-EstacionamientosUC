@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ApiError } from "./api";
+import { CodigosQrPage } from "./pages/codigos-qr";
 import { CuentasPage } from "./pages/cuentas";
 import { DiagnosticoPage } from "./pages/diagnostico";
 import { AdminLayout } from "./pages/layout";
@@ -27,6 +28,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/ingresar" element={<LoginPage />} />
             <Route element={<AdminLayout />}>
               <Route index element={<CuentasPage />} />
+              <Route path="codigos-qr" element={<CodigosQrPage />} />
               <Route path="diagnostico" element={<DiagnosticoPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

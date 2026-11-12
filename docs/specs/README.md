@@ -8,7 +8,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Acceso y datos | [02A](02-inventario.md#02a--catálogo-geográfico-y-plazas-de-prueba) | Catálogo de la demo | RF-18 | 01A | Verificada · [evidencia](#02a--evidencia) |
 | Acceso y datos | [03A](03-horarios.md#03a--destino-y-permanencia) | Destino y permanencia | RF-05 | 01A | En curso · [evidencia](#03a--evidencia) |
 | Demo móvil | [04A](04-reservas.md#04a--reserva-diaria) | Reserva y cancelación | RF-06–08 | 01A, 02A, 03A | En curso · [evidencia](#04a--evidencia) |
-| Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | Pendiente |
+| Demo móvil | [05A](05-uso-y-ranking.md#05a--entrada-y-salida-qr) | Entrada y salida QR | RF-10–12 | 02A, 04A | En curso · [evidencia](#05a--evidencia) |
 | Flujos principales | [01B](01-cuentas.md#01b--recuperación-por-correo) | Recuperación | RF-03 | 01A | Pendiente |
 | Flujos principales | [02B](02-inventario.md#02b--inventario-y-autorizaciones) | Inventario y autorizaciones | RF-18, RF-23 | 01A, 02A, 04A | Pendiente |
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | Pendiente |
@@ -89,3 +89,20 @@ Rama `tramo/04a-reserva`. Pruebas en `apps/api/test/reservas.test.js` contra Pos
 | Intervalos contiguos admitidos | Verificado (PostgreSQL) | 09:00–12:00 y 12:00–14:00 en la misma plaza y cuenta. |
 | El reintento devuelve la misma reserva | Verificado (API) | Misma `Idempotency-Key`: `200` con la misma reserva, también con 6 reintentos simultáneos; la clave con otros datos se rechaza. Probado además con `curl` contra la API local (reserva, reintento y cancelación). |
 | App: bloque, plaza, horario y distancia, o falta de cupo | Pendiente de dispositivo | Pantalla «Reservar» con resultado y pestaña «Mi reserva» con cancelación. Compilación: `tsc` y `expo export` sin errores. |
+
+### 05A · Evidencia
+
+Rama `tramo/05a-qr`. Pruebas en `apps/api/test/uso.test.js` contra PostgreSQL real.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Un QR correcto permite entrada y salida | Verificado (API) | Entrada pasa la reserva a `en_uso` con la hora del servidor; salida la deja `finalizada` y otra cuenta puede reservar la plaza liberada. Probado también con `curl` y el reloj real contra la API local. |
+| Se rechazan QR ajenos, revocados o ilegibles | Verificado (API) | `qr_otra_plaza` (indica la plaza correcta), `qr_revocado` y `qr_ilegible`, sin cambiar la reserva ni registrar eventos. |
+| Se rechazan check-ins fuera de zona o de ventana | Verificado (API) | `fuera_de_zona` con una ubicación a varios kilómetros; `fuera_de_ventana` antes de 08:45 y después de 09:15 para una llegada a las 09:00. Sin ubicación, error por campo. `PERIMETRO_PRUEBA` permite usar otro perímetro. |
+| Una lectura fallida permite reintentar | Verificado (API) | Tras los rechazos, la misma reserva acepta la lectura correcta. |
+| Repetir una operación confirmada no duplica eventos | Verificado (API) | Entrada repetida responde 200 con el mismo evento; cinco salidas simultáneas dejan un solo evento. Único `(reservaId, tipo)`. |
+| Ocupación real: un uso activo por plaza, cuenta y vehículo | Verificado (PostgreSQL) | Índices únicos parciales sobre `estado = 'en_uso'`: si la reserva anterior sigue en uso, el check-in siguiente en esa plaza responde `plaza_ocupada`. |
+| Coordenadas personales fuera del historial | Verificado (diseño) | `EventoReserva` guarda tipo, QR y hora; la ubicación solo se usa para validar. |
+| Flujo en emulador o dispositivo | Pendiente de dispositivo | Escáner con `expo-camera`, ubicación con `expo-location` e ingreso manual del código impreso. El panel imprime los QR en «Códigos QR». Compilación: `tsc`, build y `expo export` sin errores. |
+
+**Pendiente para piloto** · Confirmar perímetro y las tolerancias propuestas de 15 minutos para llegada y 10 para salida (configurables). El check-out se admite mientras la reserva está en uso; los atrasos se tratan en 05B.

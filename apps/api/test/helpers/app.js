@@ -8,7 +8,7 @@ export const testConfig = {
     // Costo mínimo de bcrypt para que las pruebas sean rápidas.
     bcryptRounds: 4,
   },
-  reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10 },
+  reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10, perimetroPrueba: null, margenPerimetroM: 50 },
 };
 
 /** Reloj controlable: `clock.set(fecha)` y `clock.advance(ms)`. */
