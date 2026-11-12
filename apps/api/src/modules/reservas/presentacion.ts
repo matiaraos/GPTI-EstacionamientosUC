@@ -29,5 +29,7 @@ export function reservaPublica(reserva: ReservaConInclusiones) {
     metodoDistancia: reserva.metodoDistancia,
     creadaEn: reserva.creadaEn,
     canceladaEn: reserva.canceladaEn,
+    origenDestino: reserva.origenDestino,
+    reemplazaId: reserva.reemplazaId,
   };
 }

@@ -1,5 +1,6 @@
 import type { ReservasConfig, RankingConfig } from "../../config.js";
 import type { Database } from "../../lib/prisma.js";
+import { atenderEsperas } from "../reservas/espera.js";
 import { ajustarPorReserva } from "./ajustes.js";
 
 export type ResultadoVencimientos = { ausentes: number[]; vencidas: number[] };
@@ -64,8 +65,12 @@ export function programarVencimientos(
     enCurso = true;
     try {
       const { ausentes, vencidas } = await procesarVencimientos(db, new Date(), reservas, ranking);
-      if (ausentes.length || vencidas.length) {
-        console.log(`Vencimientos: ${ausentes.length} ausencias, ${vencidas.length} salidas vencidas.`);
+      // Atiende la lista de espera con la capacidad liberada y cierra las esperas vencidas.
+      const esperas = await atenderEsperas(db, () => new Date(), reservas, ranking);
+      if (ausentes.length || vencidas.length || esperas.asignadas.length) {
+        console.log(
+          `Vencimientos: ${ausentes.length} ausencias, ${vencidas.length} salidas vencidas, ${esperas.asignadas.length} esperas asignadas.`,
+        );
       }
     } catch (error) {
       console.error("No se pudieron procesar los vencimientos.", error);

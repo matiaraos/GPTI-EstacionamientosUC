@@ -44,6 +44,7 @@ beforeAll(async () => {
 }, 30_000);
 
 beforeEach(async () => {
+  await db.solicitudEspera.deleteMany();
   await db.ajusteRanking.deleteMany();
   await db.eventoReserva.deleteMany();
   await db.reserva.deleteMany();

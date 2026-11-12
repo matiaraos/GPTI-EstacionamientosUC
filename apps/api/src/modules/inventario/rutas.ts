@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import type { Clock } from "../../app.js";
+import type { RankingConfig, ReservasConfig } from "../../config.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
@@ -9,10 +10,11 @@ import { finDelDia, instanteFechaHora, partesLocales } from "../../lib/tiempo.js
 import { parseInput } from "../../lib/validation.js";
 import { contenidoQr, nuevoIdentificadorQr } from "../catalogo/qr.js";
 import { requiereRol, requiereSesion, sesionDe } from "../cuentas/sesiones.js";
+import { atenderEsperas } from "../reservas/espera.js";
 import { incluirReserva, reservaPublica } from "../reservas/presentacion.js";
 import { estadoAutorizacion } from "./autorizaciones.js";
 
-type Deps = { db: Database; clock: Clock };
+type Deps = { db: Database; clock: Clock; reservas: ReservasConfig; ranking: RankingConfig };
 
 const idSchema = z.object({ id: z.coerce.number().int().positive() });
 const HORA = /^([01]\d|2[0-3]):([0-5]\d)$|^24:00$/;
@@ -161,8 +163,10 @@ const incluirBloqueo = {
 } as const;
 
 /** Gestión del inventario y de las habilitaciones preferentes. Solo para cuentas `admin` (02B). */
-export function crearRutasInventario({ db, clock }: Deps) {
+export function crearRutasInventario({ db, clock, reservas, ranking }: Deps) {
   const router = Router();
+  // Al liberar capacidad (activar, levantar un bloqueo, abrir horario) se atiende la lista de espera.
+  const atender = () => atenderEsperas(db, clock, reservas, ranking);
   router.use("/admin", requiereSesion(db, clock), requiereRol("admin"));
 
   // Zonas (bloques) y horarios
@@ -206,6 +210,7 @@ export function crearRutasInventario({ db, clock }: Deps) {
     if (count === 0) {
       throw noEncontrada("ese bloque");
     }
+    if (datos.activa) await atender();
     response.json({ zona: await db.zona.findUniqueOrThrow({ where: { id } }) });
   });
 
@@ -222,6 +227,7 @@ export function crearRutasInventario({ db, clock }: Deps) {
         data: horarios.map((h) => ({ zonaId: id, diaSemana: h.diaSemana, abreMinuto: minutos(h.abre), cierraMinuto: minutos(h.cierra) })),
       }),
     ]);
+    await atender();
     response.json({ horarios: [...horarios].sort((a, b) => a.diaSemana - b.diaSemana) });
   });
 
@@ -291,6 +297,7 @@ export function crearRutasInventario({ db, clock }: Deps) {
       }
       throw error;
     }
+    if (datos.activa || datos.tipo) await atender();
     const plaza = await db.plaza.findUniqueOrThrow({ where: { id }, select: seleccionPlaza(ahora) });
     const afecta = datos.activa === false || datos.tipo !== undefined;
     response.json({
@@ -357,6 +364,7 @@ export function crearRutasInventario({ db, clock }: Deps) {
     if (!bloqueo) {
       throw noEncontrada("ese bloqueo");
     }
+    await atender();
     response.json({ bloqueo: bloqueoPublico(bloqueo) });
   });
 

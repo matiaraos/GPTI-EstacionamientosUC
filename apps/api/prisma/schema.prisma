@@ -38,15 +38,18 @@ enum TipoDestino {
 
 /// Sala o edificio que una persona puede declarar como destino.
 model Destino {
-  id           Int              @id @default(autoincrement())
-  idOrigen     String           @unique
-  nombre       String
-  tipo         TipoDestino
-  pisos        Int[]
-  activo       Boolean          @default(true)
-  cercanias    CercaniaBloque[]
-  reservas     Reserva[]
-  bloquesClase BloqueClase[]
+  id               Int               @id @default(autoincrement())
+  idOrigen         String            @unique
+  nombre           String
+  tipo             TipoDestino
+  pisos            Int[]
+  activo           Boolean           @default(true)
+  cercanias        CercaniaBloque[]
+  reservas         Reserva[]
+  bloquesClase     BloqueClase[]
+  desempates       Reserva[]         @relation("DestinoDesempate")
+  esperas          SolicitudEspera[] @relation("EsperaDestino")
+  esperasDesempate SolicitudEspera[] @relation("EsperaDesempate")
 
   @@index([nombre])
 }
@@ -194,16 +197,18 @@ model Cuenta {
   bloquesClase            BloqueClase[]
   ajustesRanking          AjusteRanking[]          @relation("AjustesRecibidos")
   rectificaciones         AjusteRanking[]          @relation("Rectificaciones")
+  solicitudEsperas        SolicitudEspera[]
 }
 
 /// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
 model Vehiculo {
-  id       Int       @id @default(autoincrement())
-  cuentaId Int
-  cuenta   Cuenta    @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
-  patente  String    @unique
-  creadoEn DateTime  @default(now()) @db.Timestamptz(3)
-  reservas Reserva[]
+  id               Int               @id @default(autoincrement())
+  cuentaId         Int
+  cuenta           Cuenta            @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  patente          String            @unique
+  creadoEn         DateTime          @default(now()) @db.Timestamptz(3)
+  reservas         Reserva[]
+  solicitudEsperas SolicitudEspera[]
 
   @@index([cuentaId])
 }
@@ -249,35 +254,88 @@ enum EstadoReserva {
 /// Reserva de una plaza para el intervalo `[inicio, fin)`. Las restricciones de exclusión de la
 /// migración impiden que dos reservas que ocupan capacidad se solapen en la misma plaza, cuenta o vehículo.
 model Reserva {
-  id                Int             @id @default(autoincrement())
-  cuentaId          Int
-  cuenta            Cuenta          @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
-  vehiculoId        Int
-  vehiculo          Vehiculo        @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
-  plazaId           Int
-  plaza             Plaza           @relation(fields: [plazaId], references: [id], onDelete: Restrict)
-  destinoId         Int
-  destino           Destino         @relation(fields: [destinoId], references: [id], onDelete: Restrict)
-  inicio            DateTime        @db.Timestamptz(3)
-  fin               DateTime        @db.Timestamptz(3)
-  estado            EstadoReserva   @default(confirmada)
+  id                 Int              @id @default(autoincrement())
+  cuentaId           Int
+  cuenta             Cuenta           @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  vehiculoId         Int
+  vehiculo           Vehiculo         @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
+  plazaId            Int
+  plaza              Plaza            @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  destinoId          Int
+  destino            Destino          @relation(fields: [destinoId], references: [id], onDelete: Restrict)
+  inicio             DateTime         @db.Timestamptz(3)
+  fin                DateTime         @db.Timestamptz(3)
+  estado             EstadoReserva    @default(confirmada)
   /// Clave enviada por el cliente para reconocer reintentos de la misma solicitud.
-  claveIdempotencia String
+  claveIdempotencia  String
   /// Distancia del bloque asignado al destino al momento de reservar.
-  metros            Int
-  metodoDistancia   MetodoDistancia
-  creadaEn          DateTime        @default(now()) @db.Timestamptz(3)
-  canceladaEn       DateTime?       @db.Timestamptz(3)
+  metros             Int
+  metodoDistancia    MetodoDistancia
+  creadaEn           DateTime         @default(now()) @db.Timestamptz(3)
+  canceladaEn        DateTime?        @db.Timestamptz(3)
   /// Momento en que el proceso de vencimientos la marcó `ausente` o `vencida`.
-  vencidaEn         DateTime?       @db.Timestamptz(3)
-  eventos           EventoReserva[]
-  ajustes           AjusteRanking[]
+  vencidaEn          DateTime?        @db.Timestamptz(3)
+  /// Si el destino salió del horario académico (primera clase de la visita) o fue declarado.
+  origenDestino      OrigenDestino    @default(declarado)
+  /// Destino de la última clase, usado para desempatar bloques (04B).
+  destinoDesempateId Int?
+  destinoDesempate   Destino?         @relation("DestinoDesempate", fields: [destinoDesempateId], references: [id], onDelete: Restrict)
+  /// Reserva original que esta reemplazó al aceptar un cambio. La original queda cancelada.
+  reemplazaId        Int?             @unique
+  reemplaza          Reserva?         @relation("Cambio", fields: [reemplazaId], references: [id], onDelete: NoAction)
+  reemplazadaPor     Reserva?         @relation("Cambio")
+  solicitudEspera    SolicitudEspera?
+  eventos            EventoReserva[]
+  ajustes            AjusteRanking[]
 
   @@unique([cuentaId, claveIdempotencia])
+  @@index([destinoDesempateId])
   @@index([cuentaId, inicio])
   @@index([plazaId, inicio])
   @@index([vehiculoId])
   @@index([destinoId])
+}
+
+enum OrigenDestino {
+  horario
+  declarado
+}
+
+enum EstadoEspera {
+  pendiente
+  asignada
+  cancelada
+  vencida
+}
+
+/// Solicitud en lista de espera, creada solo con el consentimiento de la persona cuando no hubo cupo.
+/// Al liberarse capacidad compatible se asigna una sola vez, en la misma transacción que crea la reserva.
+model SolicitudEspera {
+  id                 Int           @id @default(autoincrement())
+  cuentaId           Int
+  cuenta             Cuenta        @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  vehiculoId         Int
+  vehiculo           Vehiculo      @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
+  destinoId          Int
+  destino            Destino       @relation("EsperaDestino", fields: [destinoId], references: [id], onDelete: Restrict)
+  destinoDesempateId Int?
+  destinoDesempate   Destino?      @relation("EsperaDesempate", fields: [destinoDesempateId], references: [id], onDelete: Restrict)
+  origenDestino      OrigenDestino @default(declarado)
+  inicio             DateTime      @db.Timestamptz(3)
+  fin                DateTime      @db.Timestamptz(3)
+  estado             EstadoEspera  @default(pendiente)
+  /// Momento en que la persona aceptó esperar (consentimiento explícito).
+  aceptadaEn         DateTime      @db.Timestamptz(3)
+  claveIdempotencia  String
+  reservaId          Int?          @unique
+  reserva            Reserva?      @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+  cerradaEn          DateTime?     @db.Timestamptz(3)
+
+  @@unique([cuentaId, claveIdempotencia])
+  @@index([estado, inicio])
+  @@index([vehiculoId])
+  @@index([destinoId])
+  @@index([destinoDesempateId])
 }
 
 enum TipoAjuste {

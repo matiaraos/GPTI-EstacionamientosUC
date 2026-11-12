@@ -5,6 +5,7 @@ import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
 import { esConflictoReintentable, esViolacionUnica, restriccionDeExclusion } from "../../lib/prisma-errors.js";
 import { partesLocales } from "../../lib/tiempo.js";
+import { estadoAutorizacion } from "../inventario/autorizaciones.js";
 import type { VisitaValidada } from "../visitas/validacion.js";
 import { incluirReserva, type ReservaConInclusiones } from "./presentacion.js";
 
@@ -18,18 +19,29 @@ export type Candidata = {
   metodo: MetodoDistancia | null;
 };
 
+/** Visita ya resuelta: intervalo, destino principal y, si hay clases, destino de desempate. */
+export type VisitaAsignable = Pick<VisitaValidada, "fecha" | "llegada" | "salida" | "inicio" | "fin" | "origenDestino"> & {
+  destino: { id: number };
+  destinoDesempate: { id: number } | null;
+};
+
 const minutos = (hora: string) => {
   const [h, m] = hora.split(":").map(Number);
   return h * 60 + m;
 };
 
 /**
- * Plazas regulares activas de bloques activos, abiertos durante toda la visita, sin bloqueos vigentes
- * y sin reservas que ocupen capacidad en el intervalo. Orden: primero distancias por la red peatonal y luego en línea
- * recta, por metros, por ID de bloque y por ID de plaza. Los bloques sin distancia quedan al final.
+ * Plazas activas de bloques activos, abiertos durante toda la visita, sin bloqueos vigentes y sin
+ * reservas que ocupen capacidad en el intervalo. Las preferentes solo se incluyen con `preferente`.
+ *
+ * Orden: método al destino principal (red peatonal antes que línea recta) y metros; ante empate, el
+ * mismo criterio hacia el destino de la última clase, con los bloques sin esa distancia al final;
+ * luego ID de bloque. Dentro del bloque, una persona habilitada usa primero las preferentes para no
+ * restar plazas regulares; después, ID de plaza. Los bloques sin distancia al destino quedan al final.
  */
-export async function buscarCandidatas(db: Cliente, visita: VisitaValidada): Promise<Candidata[]> {
+export async function buscarCandidatas(db: Cliente, visita: VisitaAsignable, preferente = false): Promise<Candidata[]> {
   const { diaSemana } = partesLocales(visita.inicio);
+  const tipos = preferente ? ["regular", "preferente"] : ["regular"];
   return db.$queryRaw<Candidata[]>`
     SELECT p."id" AS "plazaId", z."id" AS "zonaId", c."metros", c."metodo"
     FROM "Plaza" p
@@ -39,7 +51,8 @@ export async function buscarCandidatas(db: Cliente, visita: VisitaValidada): Pro
       AND h."abreMinuto" <= ${minutos(visita.llegada)}
       AND h."cierraMinuto" >= ${minutos(visita.salida)}
     LEFT JOIN "CercaniaBloque" c ON c."zonaId" = z."id" AND c."destinoId" = ${visita.destino.id}
-    WHERE p."activa" AND p."tipo" = 'regular'
+    LEFT JOIN "CercaniaBloque" d ON d."zonaId" = z."id" AND d."destinoId" = ${visita.destinoDesempate?.id ?? null}::int
+    WHERE p."activa" AND p."tipo"::text = ANY(${tipos}::text[])
       AND NOT EXISTS (
         SELECT 1 FROM "BloqueoPlaza" b
         WHERE b."plazaId" = p."id"
@@ -52,20 +65,26 @@ export async function buscarCandidatas(db: Cliente, visita: VisitaValidada): Pro
           AND r."estado" IN ('confirmada', 'en_uso')
           AND tstzrange(r."inicio", r."fin", '[)') && tstzrange(${visita.inicio}::timestamptz, ${visita.fin}::timestamptz, '[)')
       )
-    ORDER BY c."metodo" NULLS LAST, c."metros" NULLS LAST, z."id", p."id"`;
+    ORDER BY c."metodo" NULLS LAST, c."metros" NULLS LAST,
+      d."metodo" NULLS LAST, d."metros" NULLS LAST,
+      z."id", (p."tipo" = 'preferente') DESC, p."id"`;
 }
 
-type Solicitud = {
+export type Solicitud = {
   cuentaId: number;
   vehiculoId: number;
-  visita: VisitaValidada;
+  visita: VisitaAsignable;
   claveIdempotencia: string;
+  /** Reserva original que se reemplaza en un cambio; ya debe estar cancelada en la misma transacción. */
+  reemplazaId?: number;
+  /** Solicitud de espera que se atiende; se marca asignada en la misma transacción. */
+  esperaId?: number;
 };
 
 export type ResultadoReserva = { reserva: ReservaConInclusiones; reintento: boolean };
 
-const sinCupo = () =>
-  new HttpError(409, "sin_cupo", "No hay plazas disponibles para ese horario. Prueba con otro horario o fecha.");
+export const sinCupo = () =>
+  new HttpError(409, "sin_cupo", "No hay plazas disponibles para ese horario. Puedes unirte a la lista de espera o probar otro horario.");
 
 const superpuesta = () =>
   new HttpError(409, "reserva_superpuesta", "Ya tienes una reserva que se superpone con ese horario.");
@@ -112,8 +131,25 @@ async function reservaDeReintento(db: Cliente, solicitud: Solicitud): Promise<Re
   return { reserva: existente, reintento: true };
 }
 
+/** La habilitación preferente debe estar vigente ahora y al inicio de la visita (SC-002). */
+async function puedeUsarPreferentes(tx: Prisma.TransactionClient, cuentaId: number, ahora: Date, inicio: Date) {
+  const autorizacion = await tx.autorizacionPreferente.findUnique({ where: { cuentaId }, select: { vigenteHasta: true, revocadaEn: true } });
+  return (
+    autorizacion !== null &&
+    estadoAutorizacion(autorizacion, ahora) === "vigente" &&
+    estadoAutorizacion(autorizacion, inicio) === "vigente"
+  );
+}
+
+/** Serializa las asignaciones de las fechas indicadas, en orden fijo para no interbloquearse. */
+export async function bloquearFechas(tx: Prisma.TransactionClient, fechas: string[]) {
+  for (const fecha of [...new Set(fechas)].sort()) {
+    await tx.$queryRaw`SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtext(${`reservas:${fecha}`}))) AS bloqueo`;
+  }
+}
+
 /** Busca la plaza y la confirma. Corre dentro de la transacción que tiene el bloqueo del día. */
-async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: Clock, solicitud: Solicitud) {
+export async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: Clock, solicitud: Solicitud): Promise<ResultadoReserva> {
   const previa = await reservaDeReintento(tx, solicitud);
   if (previa) {
     return previa;
@@ -132,7 +168,9 @@ async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: Clock, 
     throw superpuesta();
   }
 
-  const candidatas = await buscarCandidatas(tx, visita);
+  const ahora = clock();
+  const preferente = await puedeUsarPreferentes(tx, solicitud.cuentaId, ahora, visita.inicio);
+  const candidatas = await buscarCandidatas(tx, visita, preferente);
   const elegida = candidatas.find((candidata) => candidata.metodo !== null && candidata.metros !== null);
   if (candidatas.length === 0) {
     throw sinCupo();
@@ -151,16 +189,54 @@ async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: Clock, 
       vehiculoId: solicitud.vehiculoId,
       plazaId: elegida.plazaId,
       destinoId: visita.destino.id,
+      destinoDesempateId: visita.destinoDesempate?.id ?? null,
+      origenDestino: visita.origenDestino,
       inicio: visita.inicio,
       fin: visita.fin,
       claveIdempotencia: solicitud.claveIdempotencia,
       metros: elegida.metros!,
       metodoDistancia: elegida.metodo!,
-      creadaEn: clock(),
+      reemplazaId: solicitud.reemplazaId ?? null,
+      creadaEn: ahora,
     },
     include: incluirReserva,
   });
+  if (solicitud.esperaId) {
+    // La espera se asigna una sola vez: si otra transacción ya la atendió o se canceló, se revierte todo.
+    const { count } = await tx.solicitudEspera.updateMany({
+      where: { id: solicitud.esperaId, estado: "pendiente" },
+      data: { estado: "asignada", reservaId: reserva.id, cerradaEn: ahora },
+    });
+    if (count === 0) {
+      throw new HttpError(409, "espera_cerrada", "La solicitud de espera ya no está pendiente.");
+    }
+  }
   return { reserva, reintento: false };
+}
+
+/** Traduce las violaciones de restricciones de la base en conflictos con mensaje. */
+async function comoConflicto(db: Database, solicitud: Solicitud, error: unknown): Promise<ResultadoReserva> {
+  const restriccion = restriccionDeExclusion(error);
+  if (restriccion !== null || esViolacionUnica(error)) {
+    const reintento = await reservaDeReintento(db, solicitud);
+    if (reintento) {
+      return reintento;
+    }
+    if (restriccion === "Reserva_sin_solape_plaza") {
+      throw sinCupo();
+    }
+    throw superpuesta();
+  }
+  throw error;
+}
+
+export function validarLlegadaFutura(clock: Clock, config: ReservasConfig, inicio: Date) {
+  const limite = new Date(clock().getTime() - config.toleranciaLlegadaMin * 60_000);
+  if (inicio < limite) {
+    throw new HttpError(400, "datos_invalidos", "Revisa los datos de tu visita.", {
+      llegada: "La hora de llegada ya pasó. Elige una hora futura.",
+    });
+  }
 }
 
 /**
@@ -171,47 +247,68 @@ async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: Clock, 
  * plaza ni se interbloquean en las restricciones de exclusión, que siguen garantizando en la base
  * que no haya solapes por plaza, cuenta o vehículo.
  */
-export async function reservar(
-  db: Database,
-  clock: Clock,
-  config: ReservasConfig,
-  solicitud: Solicitud,
-): Promise<ResultadoReserva> {
+export async function reservar(db: Database, clock: Clock, config: ReservasConfig, solicitud: Solicitud): Promise<ResultadoReserva> {
   const previa = await reservaDeReintento(db, solicitud);
   if (previa) {
     return previa;
   }
-
-  const limite = new Date(clock().getTime() - config.toleranciaLlegadaMin * 60_000);
-  if (solicitud.visita.inicio < limite) {
-    throw new HttpError(400, "datos_invalidos", "Revisa los datos de tu visita.", {
-      llegada: "La hora de llegada ya pasó. Elige una hora futura.",
-    });
-  }
-
+  validarLlegadaFutura(clock, config, solicitud.visita.inicio);
   try {
     return await conReintentos(() =>
       db.$transaction(
         async (tx) => {
-          await tx.$queryRaw`SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtext(${`reservas:${solicitud.visita.fecha}`}))) AS bloqueo`;
+          await bloquearFechas(tx, [solicitud.visita.fecha]);
           return asignarEnTransaccion(tx, clock, solicitud);
         },
         { maxWait: 10_000, timeout: 10_000 },
       ),
     );
   } catch (error) {
-    // Defensa adicional: si una restricción de la base rechaza la inserción, se informa como conflicto.
-    const restriccion = restriccionDeExclusion(error);
-    if (restriccion !== null || esViolacionUnica(error)) {
-      const reintento = await reservaDeReintento(db, solicitud);
-      if (reintento) {
-        return reintento;
-      }
-      if (restriccion === "Reserva_sin_solape_plaza") {
-        throw sinCupo();
-      }
-      throw superpuesta();
-    }
-    throw error;
+    return comoConflicto(db, solicitud, error);
+  }
+}
+
+/**
+ * Cambia una reserva confirmada por otra visita. En una sola transacción cancela la original y busca
+ * la alternativa; si la alternativa falla, la transacción se revierte y la original se conserva.
+ */
+export async function cambiarReserva(
+  db: Database,
+  clock: Clock,
+  config: ReservasConfig,
+  { reservaId, ...solicitud }: Omit<Solicitud, "reemplazaId" | "esperaId"> & { reservaId: number },
+): Promise<ResultadoReserva> {
+  const nueva = { ...solicitud, reemplazaId: reservaId };
+  const previa = await reservaDeReintento(db, nueva);
+  if (previa) {
+    return previa;
+  }
+  const original = await db.reserva.findFirst({ where: { id: reservaId, cuentaId: solicitud.cuentaId }, select: { estado: true, inicio: true } });
+  if (!original) {
+    throw new HttpError(404, "reserva_no_encontrada", "No encontramos esa reserva.");
+  }
+  if (original.estado !== "confirmada") {
+    throw new HttpError(409, "reserva_no_modificable", "Solo puedes cambiar una reserva confirmada antes de registrar la llegada.");
+  }
+  validarLlegadaFutura(clock, config, solicitud.visita.inicio);
+  try {
+    return await conReintentos(() =>
+      db.$transaction(
+        async (tx) => {
+          await bloquearFechas(tx, [partesLocales(original.inicio).fecha, solicitud.visita.fecha]);
+          const { count } = await tx.reserva.updateMany({
+            where: { id: reservaId, cuentaId: solicitud.cuentaId, estado: "confirmada" },
+            data: { estado: "cancelada", canceladaEn: clock() },
+          });
+          if (count === 0) {
+            throw new HttpError(409, "reserva_no_modificable", "La reserva cambió de estado. Revisa Mi reserva.");
+          }
+          return asignarEnTransaccion(tx, clock, nueva);
+        },
+        { maxWait: 10_000, timeout: 10_000 },
+      ),
+    );
+  } catch (error) {
+    return comoConflicto(db, nueva, error);
   }
 }

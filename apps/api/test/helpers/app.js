@@ -10,7 +10,7 @@ export const testConfig = {
     recuperacionTtlMin: 30,
     recuperacionUrl: "miestacionamientouc://restablecer",
   },
-  reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10, perimetroPrueba: null, margenPerimetroM: 50 },
+  reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10, perimetroPrueba: null, margenPerimetroM: 50, simultaneidadMs: 0 },
   ranking: { puntajeInicial: 100, ausencia: -10, vencimiento: -5, salidaTardia: -3, salidaATiempo: 1 },
 };
 

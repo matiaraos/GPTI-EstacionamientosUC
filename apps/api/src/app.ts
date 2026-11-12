@@ -53,7 +53,7 @@ export function createApp(deps: AppDeps) {
   app.use(crearRutasCuentas({ db, clock, auth: config.auth, mailer, ranking: config.ranking }));
   app.use(crearRutasCatalogo({ db, clock }));
   app.use(crearRutasVisitas({ db, clock }));
-  app.use(crearRutasInventario({ db, clock }));
+  app.use(crearRutasInventario({ db, clock, reservas: config.reservas, ranking: config.ranking }));
   app.use(crearRutasHorario({ db, clock }));
   app.use(crearRutasRanking({ db, clock, reservas: config.reservas, ranking: config.ranking }));
   app.use(crearRutasReservas({ db, clock, config: config.reservas, ranking: config.ranking }));
