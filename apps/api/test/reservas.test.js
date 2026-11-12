@@ -226,10 +226,14 @@ describe("reintentos e idempotencia", () => {
 
 describe("concurrencia en PostgreSQL", () => {
   test("solicitudes simultáneas de varias cuentas no solapan plazas", async () => {
-    const tokens = await Promise.all(Array.from({ length: 9 }, () => nuevaCuenta()));
+    // 20 cuentas compiten por 5 plazas. Las inserciones concurrentes pueden interbloquearse en la
+    // restricción de exclusión; la API reintenta y nadie recibe un error 500.
+    const tokens = await Promise.all(Array.from({ length: 20 }, () => nuevaCuenta()));
     const respuestas = await Promise.all(tokens.map((token) => solicitar(token)));
-    const estados = respuestas.map((r) => r.status).sort();
-    expect(estados).toEqual([201, 201, 201, 201, 201, 409, 409, 409, 409]);
+    const estados = respuestas.map((r) => r.status);
+    expect(estados.filter((estado) => estado === 201)).toHaveLength(5);
+    expect(estados.filter((estado) => estado === 409)).toHaveLength(15);
+    expect(respuestas.filter((r) => r.status === 409).every((r) => r.body.error.code === "sin_cupo")).toBe(true);
 
     const plazas = respuestas.filter((r) => r.status === 201).map((r) => r.body.reserva.plaza.id);
     expect(new Set(plazas).size).toBe(5);

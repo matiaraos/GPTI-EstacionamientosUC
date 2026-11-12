@@ -1,12 +1,14 @@
 import type { Clock } from "../../app.js";
 import type { ReservasConfig } from "../../config.js";
-import type { MetodoDistancia } from "../../generated/prisma/client.js";
+import type { MetodoDistancia, Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
-import { esViolacionUnica, restriccionDeExclusion } from "../../lib/prisma-errors.js";
+import { esConflictoReintentable, esViolacionUnica, restriccionDeExclusion } from "../../lib/prisma-errors.js";
 import { partesLocales } from "../../lib/tiempo.js";
 import type { VisitaValidada } from "../visitas/validacion.js";
 import { incluirReserva, type ReservaConInclusiones } from "./presentacion.js";
+
+type Cliente = Database | Prisma.TransactionClient;
 
 /** Plaza libre y elegible para toda la visita, con la cercanía de su bloque al destino. */
 export type Candidata = {
@@ -26,7 +28,7 @@ const minutos = (hora: string) => {
  * ocupen capacidad en el intervalo. Orden: primero distancias por la red peatonal y luego en línea
  * recta, por metros, por ID de bloque y por ID de plaza. Los bloques sin distancia quedan al final.
  */
-export async function buscarCandidatas(db: Database, visita: VisitaValidada): Promise<Candidata[]> {
+export async function buscarCandidatas(db: Cliente, visita: VisitaValidada): Promise<Candidata[]> {
   const { diaSemana } = partesLocales(visita.inicio);
   return db.$queryRaw<Candidata[]>`
     SELECT p."id" AS "plazaId", z."id" AS "zonaId", c."metros", c."metodo"
@@ -59,8 +61,29 @@ export type ResultadoReserva = { reserva: ReservaConInclusiones; reintento: bool
 const sinCupo = () =>
   new HttpError(409, "sin_cupo", "No hay plazas disponibles para ese horario. Prueba con otro horario o fecha.");
 
+const superpuesta = () =>
+  new HttpError(409, "reserva_superpuesta", "Ya tienes una reserva que se superpone con ese horario.");
+
+/** Intentos ante conflictos transitorios de PostgreSQL (interbloqueo o serialización). */
+const MAX_INTENTOS = 5;
+
+const esperar = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function conReintentos<T>(operacion: () => Promise<T>): Promise<T> {
+  for (let intento = 1; ; intento++) {
+    try {
+      return await operacion();
+    } catch (error) {
+      if (!esConflictoReintentable(error) || intento >= MAX_INTENTOS) {
+        throw error;
+      }
+      await esperar(Math.random() * 25 * intento);
+    }
+  }
+}
+
 /** Devuelve la reserva ya creada con esta clave, si existe, comprobando que sea la misma solicitud. */
-async function reservaDeReintento(db: Database, solicitud: Solicitud): Promise<ResultadoReserva | null> {
+async function reservaDeReintento(db: Cliente, solicitud: Solicitud): Promise<ResultadoReserva | null> {
   const existente = await db.reserva.findUnique({
     where: { cuentaId_claveIdempotencia: { cuentaId: solicitud.cuentaId, claveIdempotencia: solicitud.claveIdempotencia } },
     include: incluirReserva,
@@ -83,10 +106,64 @@ async function reservaDeReintento(db: Database, solicitud: Solicitud): Promise<R
   return { reserva: existente, reintento: true };
 }
 
+/** Busca la plaza y la confirma. Corre dentro de la transacción que tiene el bloqueo del día. */
+async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: Clock, solicitud: Solicitud) {
+  const previa = await reservaDeReintento(tx, solicitud);
+  if (previa) {
+    return previa;
+  }
+  const { visita } = solicitud;
+  const propia = await tx.reserva.findFirst({
+    where: {
+      OR: [{ cuentaId: solicitud.cuentaId }, { vehiculoId: solicitud.vehiculoId }],
+      estado: { in: ["confirmada", "en_uso"] },
+      inicio: { lt: visita.fin },
+      fin: { gt: visita.inicio },
+    },
+    select: { id: true },
+  });
+  if (propia) {
+    throw superpuesta();
+  }
+
+  const candidatas = await buscarCandidatas(tx, visita);
+  const elegida = candidatas.find((candidata) => candidata.metodo !== null && candidata.metros !== null);
+  if (candidatas.length === 0) {
+    throw sinCupo();
+  }
+  if (!elegida) {
+    throw new HttpError(
+      422,
+      "sin_cercania",
+      "Hay plazas disponibles, pero falta información de cercanía para ese destino. Elige otro destino o avisa a administración.",
+    );
+  }
+
+  const reserva = await tx.reserva.create({
+    data: {
+      cuentaId: solicitud.cuentaId,
+      vehiculoId: solicitud.vehiculoId,
+      plazaId: elegida.plazaId,
+      destinoId: visita.destino.id,
+      inicio: visita.inicio,
+      fin: visita.fin,
+      claveIdempotencia: solicitud.claveIdempotencia,
+      metros: elegida.metros!,
+      metodoDistancia: elegida.metodo!,
+      creadaEn: clock(),
+    },
+    include: incluirReserva,
+  });
+  return { reserva, reintento: false };
+}
+
 /**
- * Confirma una reserva en el bloque elegible más cercano al destino. Cada intento es un INSERT
- * atómico protegido por las restricciones de exclusión: si otra solicitud tomó la plaza entre la
- * búsqueda y la confirmación, se prueba la siguiente candidata (de ese u otro bloque).
+ * Confirma una reserva en el bloque elegible más cercano al destino.
+ *
+ * Las solicitudes de un mismo día se serializan con un bloqueo consultivo de PostgreSQL durante la
+ * búsqueda y la inserción, que duran milisegundos. Así dos solicitudes simultáneas no eligen la misma
+ * plaza ni se interbloquean en las restricciones de exclusión, que siguen garantizando en la base
+ * que no haya solapes por plaza, cuenta o vehículo.
  */
 export async function reservar(
   db: Database,
@@ -99,75 +176,36 @@ export async function reservar(
     return previa;
   }
 
-  const { visita } = solicitud;
   const limite = new Date(clock().getTime() - config.toleranciaLlegadaMin * 60_000);
-  if (visita.inicio < limite) {
+  if (solicitud.visita.inicio < limite) {
     throw new HttpError(400, "datos_invalidos", "Revisa los datos de tu visita.", {
       llegada: "La hora de llegada ya pasó. Elige una hora futura.",
     });
   }
 
-  const superpuesta = await db.reserva.findFirst({
-    where: {
-      OR: [{ cuentaId: solicitud.cuentaId }, { vehiculoId: solicitud.vehiculoId }],
-      estado: { in: ["confirmada", "en_uso"] },
-      inicio: { lt: visita.fin },
-      fin: { gt: visita.inicio },
-    },
-    select: { id: true },
-  });
-  if (superpuesta) {
-    throw new HttpError(409, "reserva_superpuesta", "Ya tienes una reserva que se superpone con ese horario.");
-  }
-
-  const candidatas = await buscarCandidatas(db, visita);
-  const conDistancia = candidatas.filter((candidata) => candidata.metodo !== null && candidata.metros !== null);
-  if (candidatas.length === 0) {
-    throw sinCupo();
-  }
-  if (conDistancia.length === 0) {
-    throw new HttpError(
-      422,
-      "sin_cercania",
-      "Hay plazas disponibles, pero falta información de cercanía para ese destino. Elige otro destino o avisa a administración.",
-    );
-  }
-
-  for (const candidata of conDistancia) {
-    try {
-      const reserva = await db.reserva.create({
-        data: {
-          cuentaId: solicitud.cuentaId,
-          vehiculoId: solicitud.vehiculoId,
-          plazaId: candidata.plazaId,
-          destinoId: visita.destino.id,
-          inicio: visita.inicio,
-          fin: visita.fin,
-          claveIdempotencia: solicitud.claveIdempotencia,
-          metros: candidata.metros!,
-          metodoDistancia: candidata.metodo!,
-          creadaEn: clock(),
+  try {
+    return await conReintentos(() =>
+      db.$transaction(
+        async (tx) => {
+          await tx.$queryRaw`SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtext(${`reservas:${solicitud.visita.fecha}`}))) AS bloqueo`;
+          return asignarEnTransaccion(tx, clock, solicitud);
         },
-        include: incluirReserva,
-      });
-      return { reserva, reintento: false };
-    } catch (error) {
-      const restriccion = restriccionDeExclusion(error);
+        { maxWait: 10_000, timeout: 10_000 },
+      ),
+    );
+  } catch (error) {
+    // Defensa adicional: si una restricción de la base rechaza la inserción, se informa como conflicto.
+    const restriccion = restriccionDeExclusion(error);
+    if (restriccion !== null || esViolacionUnica(error)) {
+      const reintento = await reservaDeReintento(db, solicitud);
+      if (reintento) {
+        return reintento;
+      }
       if (restriccion === "Reserva_sin_solape_plaza") {
-        continue;
+        throw sinCupo();
       }
-      if (restriccion !== null || esViolacionUnica(error)) {
-        // Un reintento simultáneo de la misma solicitud pudo confirmarse primero.
-        const reintento = await reservaDeReintento(db, solicitud);
-        if (reintento) {
-          return reintento;
-        }
-        if (restriccion === "Reserva_sin_solape_cuenta" || restriccion === "Reserva_sin_solape_vehiculo") {
-          throw new HttpError(409, "reserva_superpuesta", "Ya tienes una reserva que se superpone con ese horario.");
-        }
-      }
-      throw error;
+      throw superpuesta();
     }
+    throw error;
   }
-  throw sinCupo();
 }

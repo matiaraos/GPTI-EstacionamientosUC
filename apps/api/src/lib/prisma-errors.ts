@@ -20,3 +20,18 @@ export function restriccionDeExclusion(error: unknown): string | null {
   }
   return /exclusion constraint "([^"]+)"/.exec(causa.originalMessage ?? "")?.[1] ?? "";
 }
+
+/**
+ * Conflicto transitorio que PostgreSQL resuelve abortando una transacción: interbloqueo (40P01) o
+ * falla de serialización (40001). Prisma lo informa como P2034. La operación se puede reintentar.
+ */
+export function esConflictoReintentable(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return false;
+  }
+  if (error.code === "P2034") {
+    return true;
+  }
+  const codigo = (error.meta?.driverAdapterError as { cause?: { originalCode?: string } })?.cause?.originalCode;
+  return codigo === "40P01" || codigo === "40001";
+}
