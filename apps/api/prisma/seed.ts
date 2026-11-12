@@ -2,11 +2,14 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import { loadConfig } from "../src/config.js";
 import { createDatabase } from "../src/lib/prisma.js";
+import { sembrarPlazasDemo } from "../src/modules/catalogo/demo.js";
+import { directorioCatalogo, importarCatalogo, leerFuentesCatalogo } from "../src/modules/catalogo/importar.js";
 import { dominioDeCorreo, normalizarCorreo } from "../src/modules/cuentas/normalizacion.js";
 
 /**
- * Provisiona el administrador de prueba para el entorno local. No usar con cuentas reales:
- * el procedimiento para habilitar administradores del piloto sigue pendiente (spec 01A).
+ * Prepara el entorno local: administrador de prueba, catálogo de San Joaquín y plazas de demo.
+ * No usar con cuentas reales: el procedimiento para habilitar administradores del piloto sigue
+ * pendiente (spec 01A) y las plazas son ficticias (spec 02A).
  */
 async function main() {
   const config = loadConfig();
@@ -28,6 +31,13 @@ async function main() {
       update: { hashContrasena, rol: "admin", activa: true },
     });
     console.log(`Administrador de prueba listo: ${correo}`);
+
+    const resumen = await importarCatalogo(db, await leerFuentesCatalogo(directorioCatalogo));
+    console.log(`Catálogo: ${resumen.zonas} bloques, ${resumen.destinos} destinos, ${resumen.cercanias} distancias.`);
+    console.log("Plazas de demo (contenido de cada QR):");
+    for (const plaza of await sembrarPlazasDemo(db)) {
+      console.log(`  ${plaza.zona} · ${plaza.codigo} → ${plaza.qr}`);
+    }
   } finally {
     await db.$disconnect();
   }

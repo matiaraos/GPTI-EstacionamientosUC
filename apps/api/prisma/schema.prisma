@@ -7,10 +7,110 @@ datasource db {
   provider = "postgresql"
 }
 
-model ParkingZone {
-  id     Int     @id @default(autoincrement())
-  name   String
-  active Boolean @default(true)
+/// Bloque de estacionamiento. En San Joaquín cada bloque del catálogo (PARKING-0 a 9) es una zona.
+model Zona {
+  id        Int              @id @default(autoincrement())
+  /// Identificador en el catálogo de origen (Ubícate UC). Nulo para zonas creadas a mano.
+  idOrigen  String?          @unique
+  nombre    String
+  activa    Boolean          @default(true)
+  /// Condiciones de acceso publicadas para el bloque.
+  acceso    String?
+  /// Geometría GeoJSON (Point o Polygon) publicada para el bloque.
+  geometria Json?
+  plazas    Plaza[]
+  horarios  HorarioZona[]
+  cercanias CercaniaBloque[]
+}
+
+/// Perímetro del campus, usado para validar la llegada (05A).
+model Campus {
+  id        Int    @id @default(autoincrement())
+  idOrigen  String @unique
+  nombre    String
+  perimetro Json
+}
+
+enum TipoDestino {
+  sala
+  edificio
+}
+
+/// Sala o edificio que una persona puede declarar como destino.
+model Destino {
+  id        Int              @id @default(autoincrement())
+  idOrigen  String           @unique
+  nombre    String
+  tipo      TipoDestino
+  pisos     Int[]
+  activo    Boolean          @default(true)
+  cercanias CercaniaBloque[]
+
+  @@index([nombre])
+}
+
+enum MetodoDistancia {
+  peatonal
+  linea_recta
+}
+
+/// Distancia de un bloque a un destino. Las plazas heredan la cercanía de su bloque.
+model CercaniaBloque {
+  zonaId          Int
+  zona            Zona            @relation(fields: [zonaId], references: [id], onDelete: Cascade)
+  destinoId       Int
+  destino         Destino         @relation(fields: [destinoId], references: [id], onDelete: Cascade)
+  metros          Int
+  metodo          MetodoDistancia
+  conexionBloque  String?
+  conexionDestino String?
+  /// Posición del bloque para ese destino dentro de su método, según el catálogo.
+  orden           Int
+
+  @@id([zonaId, destinoId])
+  @@index([destinoId, metodo, metros])
+}
+
+/// Horario semanal de apertura en hora de Santiago. `diaSemana`: 1 = lunes … 7 = domingo.
+model HorarioZona {
+  id           Int  @id @default(autoincrement())
+  zonaId       Int
+  zona         Zona @relation(fields: [zonaId], references: [id], onDelete: Cascade)
+  diaSemana    Int
+  /// Minutos desde medianoche (420 = 07:00).
+  abreMinuto   Int
+  cierraMinuto Int
+
+  @@unique([zonaId, diaSemana])
+}
+
+enum TipoPlaza {
+  regular
+  preferente
+}
+
+model Plaza {
+  id     Int       @id @default(autoincrement())
+  zonaId Int
+  zona   Zona      @relation(fields: [zonaId], references: [id], onDelete: Restrict)
+  codigo String
+  tipo   TipoPlaza @default(regular)
+  activa Boolean   @default(true)
+  qrs    QrPlaza[]
+
+  @@unique([zonaId, codigo])
+}
+
+/// Código QR de una plaza. Hay como máximo uno vigente por plaza (índice parcial en la migración).
+model QrPlaza {
+  id            Int       @id @default(autoincrement())
+  plazaId       Int
+  plaza         Plaza     @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  identificador String    @unique
+  creadoEn      DateTime  @default(now()) @db.Timestamptz(3)
+  revocadoEn    DateTime? @db.Timestamptz(3)
+
+  @@index([plazaId])
 }
 
 enum Rol {

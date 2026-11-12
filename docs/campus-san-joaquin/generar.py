@@ -187,40 +187,55 @@ def generate():
         key, _, _ = connection
         lengths, parent = shortest(graph, key) if key is not None else ({}, {})
         options[block["properties"]["id"]] = connection, quality, lengths, parent
-    results = {}
-    rows = []
-    for room in groups["sala"]:
-        ident = room["properties"]["id"]
-        (end, room_gap, room_point), room_quality = anchor(room, buildings, osm["entradas"], nodes)
+    def rank(destination, connection):
+        """Ordena los bloques para un destino: primero por la red peatonal, luego en línea recta."""
+        (end, gap, point), quality = anchor(destination, buildings, osm["entradas"], nodes)
         ranked = []
         for block in groups["bloque"]:
             block_id = block["properties"]["id"]
-            (start, block_gap, block_point), quality, lengths, parent = options[block_id]
+            (start, block_gap, block_point), block_quality, lengths, parent = options[block_id]
             if end in lengths:
                 path = [end]
                 while path[-1] != start:
                     path.append(parent[path[-1]])
-                route = [block_point] + [nodes[key] for key in reversed(path)] + [room_point]
-                meters = block_gap + lengths[end] + room_gap
+                route = [block_point] + [nodes[key] for key in reversed(path)] + [point]
+                meters = block_gap + lengths[end] + gap
                 method = "peatonal"
             else:
                 route = []
-                meters = distance(center(block), center(room))
+                meters = distance(center(block), center(destination))
                 method = "linea_recta"
             ranked.append({"bloque": block_id, "metros": round(meters), "metodo": method,
-                           "conexion_bloque": quality if route else "",
-                           "conexion_sala": room_quality if route else "", "ruta": route})
+                           "conexion_bloque": block_quality if route else "",
+                           connection: quality if route else "", "ruta": route})
         ranked.sort(key=lambda row: (row["metodo"] != "peatonal", row["metros"], row["bloque"]))
         count = defaultdict(int)
         for row in ranked:
             count[row["metodo"]] += 1
             row["orden"] = count[row["metodo"]]
-            rows.append({"sala": ident, **{k: v for k, v in row.items() if k != "ruta"}})
-        results[ident] = [row for row in ranked if row["orden"] <= 3]
+        return ranked
+
+    def table(kind, column, connection):
+        rows = []
+        for item in groups[kind]:
+            ident = item["properties"]["id"]
+            ranked = rank(item, connection)
+            rows.extend({column: ident, **{k: v for k, v in row.items() if k != "ruta"}} for row in ranked)
+            if kind == "sala":
+                results[ident] = [row for row in ranked if row["orden"] <= 3]
+        return rows
+
+    results = {}
+    rows = table("sala", "sala", "conexion_sala")
+    building_rows = table("edificio", "edificio", "conexion_edificio")
     with (ROOT / "distancias.csv").open("w", newline="", encoding="utf-8") as output:
         writer = csv.DictWriter(output, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
+    with (ROOT / "distancias-edificios.csv").open("w", newline="", encoding="utf-8") as output:
+        writer = csv.DictWriter(output, fieldnames=list(building_rows[0]), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(building_rows)
     payload = {"lugares": features, "vias": [[nodes[k] for k in w["nodos"]] for w in osm["vías"]],
                "resultados": results}
     template = (ROOT / "plantilla.html").read_text(encoding="utf-8")
