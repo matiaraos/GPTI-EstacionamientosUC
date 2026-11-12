@@ -14,7 +14,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Flujos principales | [03B](03-horarios.md#03b--horario-semanal-e-importación) | Horario e importación | RF-04–05 | 02A, 03A, 04A | En curso · [evidencia](#03b--evidencia) |
 | Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | En curso · [evidencia](#05b--evidencia) |
 | Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | En curso · [evidencia](#04b--evidencia) |
-| Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Pendiente |
+| Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Verificada · [evidencia](#08a--evidencia) |
 | Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | Pendiente |
 | Piloto | [07](07-recurrencia.md#07--reservas-recurrentes) | Recurrencia semanal | RF-22 | 06 | Pendiente |
 | Piloto | [08B](08-operacion.md#08b--indicadores-y-cierre-del-piloto) | Indicadores y cierre | RF-21 y RNF del piloto | 01B, 07, 08A | Pendiente |
@@ -180,3 +180,14 @@ Rama `tramo/04b-asignacion`. Pruebas en `apps/api/test/asignacion.test.js` contr
 | App | Compilación | Reservar muestra las clases que definen el destino y ofrece la lista de espera con confirmación al no haber cupo; Mi reserva lista las esperas y permite cambiar el horario. `tsc` y `expo export` pasan. **Pendiente**: recorrer en el teléfono. |
 
 **Pendiente de producto** · Confirmar las conexiones peatonales inferidas y la ventana de simultaneidad. El orden por ranking se resuelve en el proceso de la API (una instancia en el piloto); la base sigue impidiendo solapes con varias. Ejecutar k6 en el entorno del piloto.
+
+### 08A · Evidencia
+
+Rama `tramo/08a-operacion`. Pruebas en `apps/api/test/operacion.test.js` contra PostgreSQL real. `Incidente` (pendiente, validado, descartado, cerrado) con responsable y motivo; los ajustes y bloqueos que origina quedan enlazados al incidente.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Los totales coinciden con eventos y reservas del período | Verificado (API) | A las 10:00, `GET /admin/ocupacion` informa A1 en uso, A2 reservada, B1 bloqueada, B2 inactiva y B3 libre (1 de cada una); a las 08:00 A2 aún figura libre. `GET /admin/ocupacion/periodo` informa 3 reservas (finalizada, cancelada y ausente), 1 entrada y 1 salida y 1 salida a tiempo, igual que el conteo directo de `Reserva` y `EventoReserva`. Distingue salida registrada, vencimiento, ausencia e incidentes pendientes. |
+| Una cuenta común recibe rechazo | Verificado (API) | Ocupación, período e incidentes (listar, crear, resolver, cerrar) responden `403`. Una persona solo reporta incidentes de sus propias reservas (`POST /incidentes`). |
+| Un incidente sin validar no genera una sanción | Verificado (API) | Reportes pendientes (de la persona y de administración) no generan ajustes; descartar no sanciona y rechaza una sanción. Validar registra responsable y motivo, descuenta una sola vez (`claveOrigen` `incidente:<id>`) y puede bloquear la plaza: queda fuera de nuevas asignaciones, el bloqueo no se levanta a mano y se levanta al cerrar el incidente. |
+| Panel | Compilación | Páginas Ocupación (totales, plazas por bloque, resumen del período) e Incidentes (registro, validación, descarte y cierre). `tsc` y `vite build` pasan. No se recorrió en navegador. |

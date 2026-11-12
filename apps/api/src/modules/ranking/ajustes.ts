@@ -4,14 +4,17 @@ import type { Database } from "../../lib/prisma.js";
 
 type Cliente = Database | Prisma.TransactionClient;
 
-export const MOTIVOS: Record<Exclude<TipoAjuste, "rectificacion">, string> = {
+/** Ajustes automáticos de una reserva. Las rectificaciones e incidentes los registra administración. */
+type TipoAutomatico = Exclude<TipoAjuste, "rectificacion" | "incidente">;
+
+export const MOTIVOS: Record<TipoAutomatico, string> = {
   ausencia: "No registraste la llegada dentro de la ventana de la reserva.",
   vencimiento: "No registraste la salida dentro del plazo de la reserva.",
   salida_tardia: "Registraste la salida después del plazo de la reserva.",
   salida_a_tiempo: "Registraste la salida a tiempo.",
 };
 
-export function variacionDe(tipo: Exclude<TipoAjuste, "rectificacion">, config: RankingConfig): number {
+export function variacionDe(tipo: TipoAutomatico, config: RankingConfig): number {
   return { ausencia: config.ausencia, vencimiento: config.vencimiento, salida_tardia: config.salidaTardia, salida_a_tiempo: config.salidaATiempo }[tipo];
 }
 
@@ -23,7 +26,7 @@ export async function ajustarPorReserva(
   tx: Prisma.TransactionClient,
   config: RankingConfig,
   reserva: { id: number; cuentaId: number },
-  tipo: Exclude<TipoAjuste, "rectificacion">,
+  tipo: TipoAutomatico,
   registradoEn: Date,
 ) {
   await tx.ajusteRanking.createMany({

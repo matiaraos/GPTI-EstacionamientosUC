@@ -359,6 +359,14 @@ export function crearRutasInventario({ db, clock, reservas, ranking }: Deps) {
   /** Levanta el bloqueo: la plaza vuelve a estar disponible. Se conserva en el historial. */
   router.post("/admin/bloqueos/:id/levantar", async (request, response) => {
     const { id } = parseInput(idSchema, request.params);
+    const actual = await db.bloqueoPlaza.findUnique({ where: { id }, select: { incidente: { select: { id: true, estado: true } } } });
+    if (actual?.incidente?.estado === "validado") {
+      throw new HttpError(
+        409,
+        "bloqueo_por_incidente",
+        `Este bloqueo se mantiene hasta cerrar el incidente #${actual.incidente.id}. Ciérralo desde Incidentes.`,
+      );
+    }
     await db.bloqueoPlaza.updateMany({ where: { id, levantadoEn: null }, data: { levantadoEn: clock() } });
     const bloqueo = await db.bloqueoPlaza.findUnique({ where: { id }, include: incluirBloqueo });
     if (!bloqueo) {

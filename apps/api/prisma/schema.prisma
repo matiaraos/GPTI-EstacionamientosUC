@@ -95,15 +95,16 @@ enum TipoPlaza {
 }
 
 model Plaza {
-  id       Int            @id @default(autoincrement())
-  zonaId   Int
-  zona     Zona           @relation(fields: [zonaId], references: [id], onDelete: Restrict)
-  codigo   String
-  tipo     TipoPlaza      @default(regular)
-  activa   Boolean        @default(true)
-  qrs      QrPlaza[]
-  reservas Reserva[]
-  bloqueos BloqueoPlaza[]
+  id         Int            @id @default(autoincrement())
+  zonaId     Int
+  zona       Zona           @relation(fields: [zonaId], references: [id], onDelete: Restrict)
+  codigo     String
+  tipo       TipoPlaza      @default(regular)
+  activa     Boolean        @default(true)
+  qrs        QrPlaza[]
+  reservas   Reserva[]
+  bloqueos   BloqueoPlaza[]
+  incidentes Incidente[]
 
   @@unique([zonaId, codigo])
 }
@@ -124,17 +125,21 @@ model QrPlaza {
 /// Restricción temporal de una plaza (mantención, evento, incidente). Excluye la plaza de nuevas
 /// asignaciones en `[inicio, fin)` mientras no se levante. Se conserva como historial.
 model BloqueoPlaza {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   plazaId     Int
-  plaza       Plaza     @relation(fields: [plazaId], references: [id], onDelete: Restrict)
-  inicio      DateTime  @db.Timestamptz(3)
-  fin         DateTime  @db.Timestamptz(3)
+  plaza       Plaza      @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  inicio      DateTime   @db.Timestamptz(3)
+  fin         DateTime   @db.Timestamptz(3)
   motivo      String
   creadoPorId Int
-  creadoPor   Cuenta    @relation("BloqueosCreados", fields: [creadoPorId], references: [id], onDelete: Restrict)
-  creadoEn    DateTime  @default(now()) @db.Timestamptz(3)
-  levantadoEn DateTime? @db.Timestamptz(3)
+  creadoPor   Cuenta     @relation("BloqueosCreados", fields: [creadoPorId], references: [id], onDelete: Restrict)
+  creadoEn    DateTime   @default(now()) @db.Timestamptz(3)
+  levantadoEn DateTime?  @db.Timestamptz(3)
+  /// Incidente validado que originó el bloqueo; se levanta al cerrar el incidente.
+  incidenteId Int?
+  incidente   Incidente? @relation(fields: [incidenteId], references: [id], onDelete: Restrict)
 
+  @@index([incidenteId])
   @@index([plazaId, inicio])
 }
 
@@ -198,6 +203,8 @@ model Cuenta {
   ajustesRanking          AjusteRanking[]          @relation("AjustesRecibidos")
   rectificaciones         AjusteRanking[]          @relation("Rectificaciones")
   solicitudEsperas        SolicitudEspera[]
+  incidentesReportados    Incidente[]              @relation("IncidentesReportados")
+  incidentesResueltos     Incidente[]              @relation("IncidentesResueltos")
 }
 
 /// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
@@ -287,6 +294,7 @@ model Reserva {
   solicitudEspera    SolicitudEspera?
   eventos            EventoReserva[]
   ajustes            AjusteRanking[]
+  incidentes         Incidente[]
 
   @@unique([cuentaId, claveIdempotencia])
   @@index([destinoDesempateId])
@@ -344,6 +352,45 @@ enum TipoAjuste {
   salida_a_tiempo
   salida_tardia
   rectificacion
+  incidente
+}
+
+/// `pendiente` hasta que administración lo revise. `validado`: el hecho se confirmó (puede sancionar y
+/// bloquear la plaza hasta cerrarlo). `descartado`: no se confirmó y no tiene efectos. `cerrado`: un
+/// incidente validado ya resuelto en terreno; levanta sus bloqueos.
+enum EstadoIncidente {
+  pendiente
+  validado
+  descartado
+  cerrado
+}
+
+/// Incidente en una plaza (por ejemplo, ocupada por otro vehículo o mal uso). Sin validación
+/// administrativa no genera sanciones ni bloqueos.
+model Incidente {
+  id               Int             @id @default(autoincrement())
+  plazaId          Int
+  plaza            Plaza           @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  reservaId        Int?
+  reserva          Reserva?        @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+  estado           EstadoIncidente @default(pendiente)
+  descripcion      String
+  reportadoEn      DateTime        @db.Timestamptz(3)
+  reportadoPorId   Int
+  reportadoPor     Cuenta          @relation("IncidentesReportados", fields: [reportadoPorId], references: [id], onDelete: Restrict)
+  resueltoPorId    Int?
+  resueltoPor      Cuenta?         @relation("IncidentesResueltos", fields: [resueltoPorId], references: [id], onDelete: Restrict)
+  motivoResolucion String?
+  resueltoEn       DateTime?       @db.Timestamptz(3)
+  cerradoEn        DateTime?       @db.Timestamptz(3)
+  bloqueos         BloqueoPlaza[]
+  ajustes          AjusteRanking[]
+
+  @@index([estado, reportadoEn])
+  @@index([plazaId])
+  @@index([reservaId])
+  @@index([reportadoPorId])
+  @@index([resueltoPorId])
 }
 
 /// Variación del puntaje de ranking. El puntaje es el valor inicial más la suma de los ajustes.
@@ -355,6 +402,9 @@ model AjusteRanking {
   cuenta               Cuenta     @relation("AjustesRecibidos", fields: [cuentaId], references: [id], onDelete: Restrict)
   reservaId            Int?
   reserva              Reserva?   @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+  /// Incidente validado que justifica el ajuste (08A).
+  incidenteId          Int?
+  incidente            Incidente? @relation(fields: [incidenteId], references: [id], onDelete: Restrict)
   /// Administrador que registró una rectificación; nulo en los ajustes automáticos.
   autorRectificacionId Int?
   autorRectificacion   Cuenta?    @relation("Rectificaciones", fields: [autorRectificacionId], references: [id], onDelete: Restrict)
@@ -365,6 +415,7 @@ model AjusteRanking {
   registradoEn         DateTime   @db.Timestamptz(3)
 
   @@index([cuentaId, registradoEn])
+  @@index([incidenteId])
   @@index([reservaId])
   @@index([autorRectificacionId])
 }
