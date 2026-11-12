@@ -148,7 +148,17 @@ Rama `tramo/03b-horario`. Pruebas en `apps/api/test/horario.test.js` contra Post
 | Editar el horario conserva la reserva confirmada | Verificado (API) | Reemplazar el horario deja la reserva `confirmada` con su destino e intervalo. El cambio de reserva se completa en 04B. |
 | App: horario, editor e importación | Compilación | Cuenta → Mi horario: bloques por día, editor con día, horas y destino, e importación con `expo-document-picker` y vista previa donde se elige el destino de los bloques dudosos y se agrega o reemplaza el horario. `tsc` y `expo export` pasan. **Pendiente**: recorrer el flujo en el teléfono. |
 
-**Pendiente para piloto** · Validar un `.ics` representativo y el mapeo de sus ubicaciones. Una integración directa con sistemas UC requiere autorización.
+**Horario UC simulado** · Rama `tramo/03b-horario-uc`. Pruebas en `apps/api/test/horario-uc.test.js` con `docs/campus-san-joaquin/cursos-uc.json` (121 secciones reales de San Joaquín en 2026-2 y 3 estudiantes de prueba).
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Formato UC de módulos y actividades | Verificado (API) | `L-W-V:4` produce tres bloques de 12:20 a 13:30; `M:5,6` un bloque de 14:50 a 17:20; formatos o módulos desconocidos se rechazan al cargar. La carga es idempotente, conserva los IDs de las actividades y enlaza más del 90 % de las salas con el catálogo. |
+| Conectar y revisar antes de guardar | Verificado (API) | Conectar un estudiante de prueba no cambia el horario. La vista previa marca las actividades sin sala o fuera del catálogo y los topes (quedan fuera hasta elegir destino o activarlas) y si cada bloque es nuevo, cambió o sigue igual. Probado también con `curl` contra la API local con el seed (`ing-2`: 11 bloques guardados, 3 por resolver). |
+| Modificación de horario | Verificado (API) | Cambiarse de sección muestra los bloques nuevos y los que saldrán, y sincronizar los aplica. Agregar un curso ya inscrito, cambiar a otra sigla o tocar una sección no inscrita se rechazan. Un destino elegido para una actividad sin sala se conserva al volver a sincronizar. |
+| Bloques propios y reservas | Verificado (API) | Sincronizar reemplaza solo los bloques UC; `PUT /horario` (bloques propios o `.ics`) no toca los UC. Bloques ajenos a la inscripción se rechazan sin cambios. Las clases sincronizadas definen el destino de la reserva (C003) y el desempate (B25). Desconectar quita los bloques UC o los conserva como propios. |
+| App | Compilación | Mi horario muestra la conexión, la inscripción (cambiar sección, agregar, quitar), la búsqueda de secciones como Buscacursos y la revisión con un interruptor por bloque; el editor permite elegir módulos UC. `tsc` y `expo export` pasan. **Pendiente**: recorrer en el teléfono. |
+
+**Pendiente para piloto** · Validar un `.ics` representativo y el mapeo de sus ubicaciones. Una integración directa con sistemas UC requiere autorización: reemplazaría a los estudiantes de prueba con el inicio de sesión UC y la lectura autorizada de la inscripción.
 
 ### 05B · Evidencia
 

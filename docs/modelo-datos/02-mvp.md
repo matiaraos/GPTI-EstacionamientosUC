@@ -61,6 +61,7 @@ erDiagram
 ```
 
 - **Recuperación y horarios.** Consumir el token una sola vez y guardar su hash. La importación `.ics` produce bloques de clase tras la confirmación del usuario. La reserva conserva el destino e intervalo asignados aunque se edite un bloque. `origen_destino` distingue horario académico de destino declarado para medir el piloto.
+- **Horario UC simulado.** `CursoUC` y `ActividadUC` guardan secciones de Buscacursos con su formato de módulos y la sala enlazada al catálogo cuando la coincidencia es única. `PerfilUC` son estudiantes de prueba y `ConexionUC` la inscripción simulada de una cuenta. Los bloques de clase registran su `origen` (`manual`, `ics` o `uc`) y la actividad UC de la que vienen, para sincronizar sin tocar los propios.
 - **Accesibilidad.** La API verifica vigencia y revocación al asignar una plaza preferente. La autorización solo guarda estado administrativo y vigencia.
 - **Asignación.** Excluir plazas inactivas y bloqueadas durante la ventana. Asignar una solicitud de espera una sola vez y registrar el vínculo con la reserva en la misma transacción. Usar cercanía por bloque para elegir la plaza, y ranking y antigüedad para ordenar solicitudes simultáneas compatibles. La ventana de simultaneidad sigue pendiente en 04B.
 

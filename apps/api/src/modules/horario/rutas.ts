@@ -8,6 +8,7 @@ import { parseInput } from "../../lib/validation.js";
 import { requiereSesion, sesionDe } from "../cuentas/sesiones.js";
 import { aHora, bloquePublico, bloqueSchema, datosFila, erroresDeBloques, horarioInvalido, incluirBloque } from "./bloques.js";
 import { previsualizarIcs } from "./importacion.js";
+import { crearRutasHorarioUC } from "./uc.js";
 
 type Deps = { db: Database; clock: Clock };
 
@@ -22,7 +23,8 @@ const solapado = () => horarioInvalido({ inicio: "Se superpone con otro bloque d
 /** Horario semanal de la persona (03B). Editarlo no cambia reservas ya confirmadas. */
 export function crearRutasHorario({ db, clock }: Deps) {
   const router = Router();
-  router.use("/horario", requiereSesion(db, clock));
+  router.use(["/horario", "/cursos-uc"], requiereSesion(db, clock));
+  router.use(crearRutasHorarioUC({ db, clock }));
 
   const listar = async (cuentaId: number) =>
     (
@@ -37,16 +39,20 @@ export function crearRutasHorario({ db, clock }: Deps) {
     response.json({ bloques: await listar(sesionDe(response).cuentaId) });
   });
 
-  /** Reemplaza el horario completo en una transacción. Si algún bloque es inválido, no cambia nada. */
+  /**
+   * Reemplaza los bloques propios (manuales e importados) en una transacción. Los bloques del horario
+   * UC conectado se conservan y se sincronizan aparte. Si algún bloque es inválido, no cambia nada.
+   */
   router.put("/horario", async (request, response) => {
     const { cuentaId } = sesionDe(response);
     const { bloques } = parseInput(reemplazoSchema, request.body);
-    const details = await erroresDeBloques(db, bloques, (i) => `bloques.${i}.`);
+    const uc = await db.bloqueClase.findMany({ where: { cuentaId, origen: "uc" } });
+    const details = await erroresDeBloques(db, bloques, (i) => `bloques.${i}.`, uc);
     if (Object.keys(details).length > 0) {
       throw horarioInvalido(details);
     }
     await db.$transaction([
-      db.bloqueClase.deleteMany({ where: { cuentaId } }),
+      db.bloqueClase.deleteMany({ where: { cuentaId, origen: { not: "uc" } } }),
       db.bloqueClase.createMany({ data: bloques.map((b) => datosFila(cuentaId, b)) }),
     ]);
     response.json({ bloques: await listar(cuentaId) });
@@ -92,7 +98,8 @@ export function crearRutasHorario({ db, clock }: Deps) {
     try {
       const bloque = await db.bloqueClase.update({
         where: { id },
-        data: datosFila(cuentaId, datos),
+        // Un bloque del horario UC sigue siéndolo: la próxima sincronización mostrará la diferencia.
+        data: { ...datosFila(cuentaId, datos), origen: actual.origen },
         include: incluirBloque,
       });
       response.json({ bloque: bloquePublico(bloque) });

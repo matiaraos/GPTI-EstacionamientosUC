@@ -59,10 +59,14 @@ export default function ImportarHorarioScreen() {
         fin: b.fin,
         titulo: b.titulo,
         destinoId: b.destino?.id ?? null,
+        origen: "ics" as const,
       }));
       const actuales =
         modo === "agregar"
-          ? (await obtenerHorario(token!)).bloques.map((b) => ({ diaSemana: b.diaSemana, inicio: b.inicio, fin: b.fin, titulo: b.titulo, destinoId: b.destino.id }))
+          ? (await obtenerHorario(token!)).bloques
+              // Los bloques del horario UC se conservan aparte; aquí solo se reenvían los propios.
+              .filter((b) => b.origen !== "uc")
+              .map((b) => ({ diaSemana: b.diaSemana, inicio: b.inicio, fin: b.fin, titulo: b.titulo, destinoId: b.destino.id, origen: b.origen as "manual" | "ics" }))
           : [];
       return reemplazarHorario(token!, [...actuales, ...nuevos]);
     },
@@ -74,10 +78,10 @@ export default function ImportarHorarioScreen() {
   });
   const error = describeError(leer.error ?? guardar.error);
   const confirmar = () =>
-    Alert.alert("¿Cómo guardar los bloques?", "Tus reservas confirmadas no cambian.", [
+    Alert.alert("¿Cómo guardar los bloques?", "Los bloques de tu horario UC y tus reservas confirmadas no cambian.", [
       { text: "Cancelar", style: "cancel" },
       { text: "Agregar a mi horario", onPress: () => guardar.mutate("agregar") },
-      { text: "Reemplazar mi horario", style: "destructive", onPress: () => guardar.mutate("reemplazar") },
+      { text: "Reemplazar mis bloques", style: "destructive", onPress: () => guardar.mutate("reemplazar") },
     ]);
 
   return (

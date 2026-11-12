@@ -1,9 +1,9 @@
 import { createContext, use, useCallback, useMemo, useState, type ReactNode } from "react";
 import type { Destino } from "@/api/catalogo";
-import type { BloqueImportado } from "@/api/horario";
+import type { BloqueImportado, BloqueUCPropuesto } from "@/api/horario";
 
 /** Bloque en edición: día, horas de pared de Santiago y destino. */
-export type BorradorBloque = { id: number | null; diaSemana: number; inicio: string; fin: string; titulo: string; destino: Destino | null };
+export type BorradorBloque = { id: number | null; diaSemana: number; inicio: string; fin: string; titulo: string; destino: Destino | null; uc?: boolean };
 
 type HorarioValue = {
   borrador: BorradorBloque;
@@ -12,13 +12,19 @@ type HorarioValue = {
   /** Bloques propuestos por la importación, pendientes de revisar. */
   importados: BloqueImportado[] | null;
   fijarImportados: (bloques: BloqueImportado[] | null) => void;
-  /** A qué se aplica el destino elegido en el buscador: el borrador o un bloque importado. */
-  objetivo: "borrador" | number;
-  elegirPara: (objetivo: "borrador" | number) => void;
+  /** Vista previa del horario UC, pendiente de confirmar. */
+  vistaUC: BloqueUCPropuesto[] | null;
+  fijarVistaUC: (bloques: BloqueUCPropuesto[] | null) => void;
+  actualizarBloqueUC: (indice: number, cambios: Partial<BloqueUCPropuesto>) => void;
+  /** A qué se aplica el destino elegido en el buscador: el borrador, un bloque importado o uno del horario UC. */
+  objetivo: Objetivo;
+  elegirPara: (objetivo: Objetivo) => void;
   aplicarDestino: (destino: Destino) => void;
 };
 
 export const borradorVacio = (): BorradorBloque => ({ id: null, diaSemana: 1, inicio: "08:30", fin: "09:50", titulo: "", destino: null });
+
+type Objetivo = "borrador" | number | { uc: number };
 
 const HorarioContext = createContext<HorarioValue | null>(null);
 
@@ -26,11 +32,20 @@ const HorarioContext = createContext<HorarioValue | null>(null);
 export function HorarioProvider({ children }: { children: ReactNode }) {
   const [borrador, setBorrador] = useState<BorradorBloque>(borradorVacio);
   const [importados, setImportados] = useState<BloqueImportado[] | null>(null);
-  const [objetivo, setObjetivo] = useState<"borrador" | number>("borrador");
+  const [objetivo, setObjetivo] = useState<Objetivo>("borrador");
+  const [vistaUC, setVistaUC] = useState<BloqueUCPropuesto[] | null>(null);
+  const actualizarBloqueUC = useCallback(
+    (indice: number, cambios: Partial<BloqueUCPropuesto>) =>
+      setVistaUC((lista) => lista?.map((b, i) => (i === indice ? { ...b, ...cambios } : b)) ?? null),
+    [],
+  );
 
   const aplicarDestino = useCallback(
     (destino: Destino) => {
-      if (objetivo === "borrador") {
+      if (typeof objetivo === "object") {
+        // Elegir el destino resuelve el problema de sala y deja el bloque incluido.
+        actualizarBloqueUC(objetivo.uc, { destino, incluir: true, problemas: [] });
+      } else if (objetivo === "borrador") {
         setBorrador((b) => ({ ...b, destino }));
       } else {
         setImportados((lista) =>
@@ -40,7 +55,7 @@ export function HorarioProvider({ children }: { children: ReactNode }) {
         );
       }
     },
-    [objetivo],
+    [objetivo, actualizarBloqueUC],
   );
 
   const value = useMemo<HorarioValue>(
@@ -50,11 +65,14 @@ export function HorarioProvider({ children }: { children: ReactNode }) {
       actualizarBorrador: (cambios) => setBorrador((b) => ({ ...b, ...cambios })),
       importados,
       fijarImportados: setImportados,
+      vistaUC,
+      fijarVistaUC: setVistaUC,
+      actualizarBloqueUC,
       objetivo,
       elegirPara: setObjetivo,
       aplicarDestino,
     }),
-    [borrador, importados, objetivo, aplicarDestino],
+    [borrador, importados, objetivo, aplicarDestino, vistaUC, actualizarBloqueUC],
   );
   return <HorarioContext value={value}>{children}</HorarioContext>;
 }
