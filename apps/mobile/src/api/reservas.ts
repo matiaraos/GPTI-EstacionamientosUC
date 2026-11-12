@@ -48,3 +48,14 @@ export function distanciaLegible(reserva: Pick<Reserva, "metros" | "metodoDistan
     ? `${reserva.metros} m a pie`
     : `${reserva.metros} m en línea recta (estimación)`;
 }
+
+export type ResultadoUso = { reserva: Reserva; evento: { tipo: "entrada" | "salida"; registradoEn: string } };
+
+/** Check-in con el contenido del QR y la ubicación actual (la API no la guarda). */
+export function registrarEntrada(token: string, id: number, datos: { qr: string; latitud: number; longitud: number }) {
+  return apiRequest<ResultadoUso>(`/reservas/${id}/entrada`, { method: "POST", body: datos, token });
+}
+
+export function registrarSalida(token: string, id: number, qr: string) {
+  return apiRequest<ResultadoUso>(`/reservas/${id}/salida`, { method: "POST", body: { qr }, token });
+}

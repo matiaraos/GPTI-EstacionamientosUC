@@ -111,6 +111,7 @@ model QrPlaza {
   identificador String    @unique
   creadoEn      DateTime  @default(now()) @db.Timestamptz(3)
   revocadoEn    DateTime? @db.Timestamptz(3)
+  eventos       EventoReserva[]
 
   @@index([plazaId])
 }
@@ -188,10 +189,31 @@ model Reserva {
   metodoDistancia   MetodoDistancia
   creadaEn          DateTime        @default(now()) @db.Timestamptz(3)
   canceladaEn       DateTime?       @db.Timestamptz(3)
+  eventos           EventoReserva[]
 
   @@unique([cuentaId, claveIdempotencia])
   @@index([cuentaId, inicio])
   @@index([plazaId, inicio])
   @@index([vehiculoId])
   @@index([destinoId])
+}
+
+enum TipoEvento {
+  entrada
+  salida
+}
+
+/// Entrada o salida registrada con el QR de la plaza y la hora del servidor. Uno por reserva y tipo.
+/// No guarda coordenadas: la ubicación solo se usa para validar la llegada.
+model EventoReserva {
+  id           Int        @id @default(autoincrement())
+  reservaId    Int
+  reserva      Reserva    @relation(fields: [reservaId], references: [id], onDelete: Restrict)
+  tipo         TipoEvento
+  qrPlazaId    Int
+  qrPlaza      QrPlaza    @relation(fields: [qrPlazaId], references: [id], onDelete: Restrict)
+  registradoEn DateTime   @db.Timestamptz(3)
+
+  @@unique([reservaId, tipo])
+  @@index([qrPlazaId])
 }

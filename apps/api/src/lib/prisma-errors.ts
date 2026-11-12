@@ -35,3 +35,16 @@ export function esConflictoReintentable(error: unknown): boolean {
   const codigo = (error.meta?.driverAdapterError as { cause?: { originalCode?: string } })?.cause?.originalCode;
   return codigo === "40P01" || codigo === "40001";
 }
+
+/** Nombre de la restricción o índice único violado (23505), o `null` si el error es otro. */
+export function restriccionUnica(error: unknown): string | null {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) {
+    return null;
+  }
+  const causa = (error.meta?.driverAdapterError as { cause?: { originalCode?: string; originalMessage?: string } })
+    ?.cause;
+  if (causa?.originalCode === "23505") {
+    return /unique constraint "([^"]+)"/.exec(causa.originalMessage ?? "")?.[1] ?? "";
+  }
+  return error.code === "P2002" ? "" : null;
+}

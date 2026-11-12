@@ -13,7 +13,7 @@ export function AdminLayout() {
 
   return (
     <div className="shell">
-      <header className="topbar">
+      <header className="topbar no-print">
         <div>
           <p className="eyebrow">Campus San Joaquín</p>
           <strong>MiEstacionamientoUC · Administración</strong>
@@ -22,6 +22,7 @@ export function AdminLayout() {
           <NavLink to="/" end>
             Cuentas
           </NavLink>
+          <NavLink to="/codigos-qr">Códigos QR</NavLink>
           <NavLink to="/diagnostico">Diagnóstico</NavLink>
         </nav>
         <div className="session">

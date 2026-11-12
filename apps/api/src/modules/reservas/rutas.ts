@@ -9,6 +9,7 @@ import { requiereSesion, sesionDe } from "../cuentas/sesiones.js";
 import { validarVisita, visitaSchema } from "../visitas/validacion.js";
 import { reservar } from "./asignacion.js";
 import { incluirReserva, reservaPublica } from "./presentacion.js";
+import { registrarEntrada, registrarSalida, type ResultadoUso } from "./uso.js";
 
 type Deps = { db: Database; clock: Clock; config: ReservasConfig };
 
@@ -19,6 +20,16 @@ const claveSchema = z
   .max(100, "La clave de la solicitud es demasiado larga.");
 
 const idSchema = z.object({ id: z.coerce.number().int().positive() });
+
+const entradaSchema = z.object({
+  qr: z.string({ error: "Escanea el código QR de tu plaza." }),
+  latitud: z.number({ error: "Activa la ubicación para registrar tu llegada." }).min(-90).max(90),
+  longitud: z.number({ error: "Activa la ubicación para registrar tu llegada." }).min(-180).max(180),
+});
+
+const salidaSchema = z.object({ qr: z.string({ error: "Escanea el código QR de tu plaza." }) });
+
+const respuestaUso = ({ reserva, evento }: ResultadoUso) => ({ reserva: reservaPublica(reserva), evento });
 
 export function crearRutasReservas({ db, clock, config }: Deps) {
   const router = Router();
@@ -95,6 +106,22 @@ export function crearRutasReservas({ db, clock, config }: Deps) {
       );
     }
     response.json({ reserva: reservaPublica(reserva) });
+  });
+
+  /** Check-in con el QR de la plaza y la ubicación actual. Repetirlo devuelve el mismo evento (200). */
+  router.post("/reservas/:id/entrada", async (request, response) => {
+    const { id } = parseInput(idSchema, request.params);
+    const datos = parseInput(entradaSchema, request.body);
+    const resultado = await registrarEntrada(db, clock, config, { cuentaId: sesionDe(response).cuentaId, reservaId: id, ...datos });
+    response.status(resultado.repetido ? 200 : 201).json(respuestaUso(resultado));
+  });
+
+  /** Check-out con el QR de la plaza. Libera la plaza; repetirlo devuelve el mismo evento (200). */
+  router.post("/reservas/:id/salida", async (request, response) => {
+    const { id } = parseInput(idSchema, request.params);
+    const datos = parseInput(salidaSchema, request.body);
+    const resultado = await registrarSalida(db, clock, { cuentaId: sesionDe(response).cuentaId, reservaId: id, ...datos });
+    response.status(resultado.repetido ? 200 : 201).json(respuestaUso(resultado));
   });
 
   return router;

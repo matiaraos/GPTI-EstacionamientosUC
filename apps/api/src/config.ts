@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { esPoligono, type Poligono } from "./lib/geo.js";
 
 const configSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
@@ -9,6 +10,8 @@ const configSchema = z.object({
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
   TOLERANCIA_LLEGADA_MIN: z.coerce.number().int().min(0).max(120).default(15),
   TOLERANCIA_SALIDA_MIN: z.coerce.number().int().min(0).max(120).default(10),
+  PERIMETRO_PRUEBA: z.string().optional(),
+  MARGEN_PERIMETRO_M: z.coerce.number().min(0).max(1000).default(50),
 });
 
 export type AuthConfig = {
@@ -23,6 +26,10 @@ export type ReservasConfig = {
   toleranciaLlegadaMin: number;
   /** Minutos después de la hora de salida en que se admite el check-out (05A). */
   toleranciaSalidaMin: number;
+  /** Perímetro donde se admite la llegada. Si falta, se usa el del campus cargado del catálogo. */
+  perimetroPrueba: Poligono | null;
+  /** Margen en metros alrededor del perímetro para absorber el error del GPS. */
+  margenPerimetroM: number;
 };
 
 export type AppConfig = {
@@ -41,6 +48,22 @@ export function parseEmailDomains(value: string): string[] {
     .split(",")
     .map((domain) => domain.trim().toLowerCase().replace(/^@/, ""))
     .filter(Boolean);
+}
+
+function leerPerimetro(valor: string | undefined): Poligono | null {
+  if (!valor?.trim()) {
+    return null;
+  }
+  let geometria: unknown;
+  try {
+    geometria = JSON.parse(valor);
+  } catch {
+    throw new Error("Configuración inválida. PERIMETRO_PRUEBA debe ser un polígono GeoJSON en JSON.");
+  }
+  if (!esPoligono(geometria)) {
+    throw new Error('Configuración inválida. PERIMETRO_PRUEBA debe tener la forma {"type":"Polygon","coordinates":[[[lon,lat],…]]}.');
+  }
+  return geometria;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -66,6 +89,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     reservas: {
       toleranciaLlegadaMin: values.TOLERANCIA_LLEGADA_MIN,
       toleranciaSalidaMin: values.TOLERANCIA_SALIDA_MIN,
+      perimetroPrueba: leerPerimetro(values.PERIMETRO_PRUEBA),
+      margenPerimetroM: values.MARGEN_PERIMETRO_M,
     },
   };
 }

@@ -200,6 +200,66 @@ th {
   font-weight: 600;
 }
 
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+.qr-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  break-inside: avoid;
+}
+
+.qr-plaza {
+  font-size: 1.6rem;
+}
+
+.qr-card code {
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.qr-card img,
+.qr-placeholder {
+  width: 160px;
+  height: 160px;
+  background: #ffffff;
+}
+
+@media print {
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-text: #000000;
+    --color-border: #999999;
+  }
+
+  .no-print,
+  .toolbar button {
+    display: none;
+  }
+
+  .content {
+    padding: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
