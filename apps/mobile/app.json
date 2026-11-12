@@ -4,9 +4,16 @@
     "slug": "miestacionamientouc",
     "scheme": "miestacionamientouc",
     "version": "0.1.0",
-    "platforms": ["android", "ios"],
-    "ios": { "bundleIdentifier": "cl.uc.miestacionamiento" },
-    "android": { "package": "cl.uc.miestacionamiento" },
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "ios": {
+      "bundleIdentifier": "cl.uc.miestacionamiento"
+    },
+    "android": {
+      "package": "cl.uc.miestacionamiento"
+    },
     "plugins": [
       "expo-router",
       [
@@ -24,7 +31,8 @@
         }
       ],
       "expo-notifications",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
     ]
   }
 }
