@@ -77,6 +77,10 @@ export default function CuentaScreen() {
         </>
       ) : null}
 
+      <Section title="Clases">
+        <ListRow icon="calendar" title="Mi horario" detail="Bloques semanales e importación .ics" onPress={() => router.push("/horario")} />
+      </Section>
+
       <Section title="Ayuda">
         <ListRow icon="wifi" title="Verificar conexión" detail="Comprueba que la app llega al servidor" onPress={() => router.push("/diagnostico")} />
       </Section>

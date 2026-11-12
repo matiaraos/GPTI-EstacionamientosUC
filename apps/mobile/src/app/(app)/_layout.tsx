@@ -1,4 +1,5 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { HorarioProvider } from "@/horario/horario-provider";
 import { SolicitudProvider } from "@/reserva/solicitud-provider";
 import { useTheme } from "@/theme";
 
@@ -6,6 +7,7 @@ export default function AppLayout() {
   const { colors } = useTheme();
   return (
     <SolicitudProvider>
+      <HorarioProvider>
       <NativeTabs
         tintColor={colors.accent}
         iconColor={{ default: colors.tertiaryLabel, selected: colors.accent }}
@@ -26,6 +28,7 @@ export default function AppLayout() {
           <NativeTabs.Trigger.Label>Cuenta</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>
       </NativeTabs>
+      </HorarioProvider>
     </SolicitudProvider>
   );
 }

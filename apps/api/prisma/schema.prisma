@@ -38,14 +38,15 @@ enum TipoDestino {
 
 /// Sala o edificio que una persona puede declarar como destino.
 model Destino {
-  id        Int              @id @default(autoincrement())
-  idOrigen  String           @unique
-  nombre    String
-  tipo      TipoDestino
-  pisos     Int[]
-  activo    Boolean          @default(true)
-  cercanias CercaniaBloque[]
-  reservas  Reserva[]
+  id           Int              @id @default(autoincrement())
+  idOrigen     String           @unique
+  nombre       String
+  tipo         TipoDestino
+  pisos        Int[]
+  activo       Boolean          @default(true)
+  cercanias    CercaniaBloque[]
+  reservas     Reserva[]
+  bloquesClase BloqueClase[]
 
   @@index([nombre])
 }
@@ -149,6 +150,27 @@ model AutorizacionPreferente {
   @@index([otorgadaPorId])
 }
 
+/// Bloque del horario semanal de una persona, en hora de Santiago. `diaSemana`: 1 = lunes … 7 = domingo.
+/// Los bloques de un mismo día no se solapan (restricción de exclusión en la migración). Editar el
+/// horario no cambia las reservas ya confirmadas.
+model BloqueClase {
+  id           Int      @id @default(autoincrement())
+  cuentaId     Int
+  cuenta       Cuenta   @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  destinoId    Int
+  destino      Destino  @relation(fields: [destinoId], references: [id], onDelete: Restrict)
+  diaSemana    Int
+  /// Minutos desde medianoche, intervalo `[inicioMinuto, finMinuto)`.
+  inicioMinuto Int
+  finMinuto    Int
+  /// Nombre del curso o actividad, si se conoce (por ejemplo, el SUMMARY del .ics).
+  titulo       String?
+  creadoEn     DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([cuentaId, diaSemana])
+  @@index([destinoId])
+}
+
 enum Rol {
   usuario
   admin
@@ -169,6 +191,7 @@ model Cuenta {
   bloqueosCreados         BloqueoPlaza[]           @relation("BloqueosCreados")
   autorizacion            AutorizacionPreferente?  @relation("Autorizacion")
   autorizacionesOtorgadas AutorizacionPreferente[] @relation("AutorizacionesOtorgadas")
+  bloquesClase            BloqueClase[]
 }
 
 /// Vehículo de una cuenta. La patente normalizada lo identifica de forma estable.
