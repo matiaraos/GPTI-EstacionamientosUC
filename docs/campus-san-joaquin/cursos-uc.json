@@ -1,0 +1,2749 @@
+{
+ "fuente": "https://buscacursos.uc.cl/",
+ "semestre": "2026-2",
+ "campus": "San Joaquín",
+ "consultado": "2026-11-12",
+ "modulos": [
+  {
+   "modulo": 1,
+   "inicio": "08:20",
+   "fin": "09:30"
+  },
+  {
+   "modulo": 2,
+   "inicio": "09:40",
+   "fin": "10:50"
+  },
+  {
+   "modulo": 3,
+   "inicio": "11:00",
+   "fin": "12:10"
+  },
+  {
+   "modulo": 4,
+   "inicio": "12:20",
+   "fin": "13:30"
+  },
+  {
+   "modulo": 5,
+   "inicio": "14:50",
+   "fin": "16:00"
+  },
+  {
+   "modulo": 6,
+   "inicio": "16:10",
+   "fin": "17:20"
+  },
+  {
+   "modulo": 7,
+   "inicio": "17:30",
+   "fin": "18:40"
+  },
+  {
+   "modulo": 8,
+   "inicio": "18:50",
+   "fin": "20:00"
+  },
+  {
+   "modulo": 9,
+   "inicio": "20:10",
+   "fin": "21:20"
+  }
+ ],
+ "perfiles": [
+  {
+   "codigo": "ing-1",
+   "nombre": "Estudiante de prueba 1",
+   "carrera": "Ingeniería · primer año",
+   "nrcs": [
+    "24322",
+    "14268",
+    "12273",
+    "23598"
+   ]
+  },
+  {
+   "codigo": "ing-2",
+   "nombre": "Estudiante de prueba 2",
+   "carrera": "Ingeniería · segundo año",
+   "nrcs": [
+    "14182",
+    "22606",
+    "12431",
+    "24622"
+   ]
+  },
+  {
+   "codigo": "ing-3",
+   "nombre": "Estudiante de prueba 3",
+   "carrera": "Ingeniería · tercer año",
+   "nrcs": [
+    "14202",
+    "14246",
+    "16183",
+    "27150"
+   ]
+  }
+ ],
+ "secciones": [
+  {
+   "nrc": "22581",
+   "sigla": "FIS1514",
+   "seccion": 1,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "K201"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B11"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "B14"
+    }
+   ]
+  },
+  {
+   "nrc": "22584",
+   "sigla": "FIS1514",
+   "seccion": 2,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "K201"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B11"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "B18"
+    }
+   ]
+  },
+  {
+   "nrc": "22588",
+   "sigla": "FIS1514",
+   "seccion": 3,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:5",
+     "tipo": "CLAS",
+     "sala": "K202"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "A5"
+    },
+    {
+     "modulos": "V:3",
+     "tipo": "TAL",
+     "sala": "BC22"
+    }
+   ]
+  },
+  {
+   "nrc": "22590",
+   "sigla": "FIS1514",
+   "seccion": 4,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:5",
+     "tipo": "CLAS",
+     "sala": "K202"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "A5"
+    },
+    {
+     "modulos": "V:3",
+     "tipo": "TAL",
+     "sala": "B21"
+    }
+   ]
+  },
+  {
+   "nrc": "22591",
+   "sigla": "FIS1514",
+   "seccion": 5,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:5",
+     "tipo": "CLAS",
+     "sala": "K201"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B12"
+    },
+    {
+     "modulos": "V:4",
+     "tipo": "TAL",
+     "sala": "B24"
+    }
+   ]
+  },
+  {
+   "nrc": "22592",
+   "sigla": "FIS1514",
+   "seccion": 6,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:5",
+     "tipo": "CLAS",
+     "sala": "K201"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B12"
+    },
+    {
+     "modulos": "V:4",
+     "tipo": "TAL",
+     "sala": "N13-B"
+    }
+   ]
+  },
+  {
+   "nrc": "22594",
+   "sigla": "FIS1514",
+   "seccion": 7,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:4",
+     "tipo": "CLAS",
+     "sala": "K203"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "R6"
+    },
+    {
+     "modulos": "V:4",
+     "tipo": "TAL",
+     "sala": "B23"
+    }
+   ]
+  },
+  {
+   "nrc": "22596",
+   "sigla": "FIS1514",
+   "seccion": 8,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:4",
+     "tipo": "CLAS",
+     "sala": "K203"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "R6"
+    },
+    {
+     "modulos": "V:4",
+     "tipo": "TAL",
+     "sala": "BC23"
+    }
+   ]
+  },
+  {
+   "nrc": "22606",
+   "sigla": "FIS1514",
+   "seccion": 9,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:3",
+     "tipo": "CLAS",
+     "sala": "BC24"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "K203"
+    },
+    {
+     "modulos": "V:3",
+     "tipo": "TAL",
+     "sala": "BC25"
+    }
+   ]
+  },
+  {
+   "nrc": "22607",
+   "sigla": "FIS1514",
+   "seccion": 10,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:3",
+     "tipo": "CLAS",
+     "sala": "BC24"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "K203"
+    },
+    {
+     "modulos": "V:3",
+     "tipo": "TAL",
+     "sala": "B25"
+    }
+   ]
+  },
+  {
+   "nrc": "25188",
+   "sigla": "FIS1514",
+   "seccion": 11,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "AE202"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B13"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "N12"
+    }
+   ]
+  },
+  {
+   "nrc": "25189",
+   "sigla": "FIS1514",
+   "seccion": 12,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "AE202"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B13"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "N16-B"
+    }
+   ]
+  },
+  {
+   "nrc": "26893",
+   "sigla": "FIS1514",
+   "seccion": 13,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "B13"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B23"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "B16"
+    }
+   ]
+  },
+  {
+   "nrc": "26894",
+   "sigla": "FIS1514",
+   "seccion": 14,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "B13"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "AYU",
+     "sala": "B23"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "BC22"
+    }
+   ]
+  },
+  {
+   "nrc": "16162",
+   "sigla": "FIS1523",
+   "seccion": 1,
+   "nombre": "Termodinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L:6",
+     "tipo": "AYU",
+     "sala": "D202"
+    },
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "D306"
+    }
+   ]
+  },
+  {
+   "nrc": "16170",
+   "sigla": "FIS1523",
+   "seccion": 2,
+   "nombre": "Termodinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:5",
+     "tipo": "CLAS",
+     "sala": "AL3"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "B23"
+    }
+   ]
+  },
+  {
+   "nrc": "28139",
+   "sigla": "FIS1523",
+   "seccion": 3,
+   "nombre": "Termodinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "D203"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "D303"
+    }
+   ]
+  },
+  {
+   "nrc": "16178",
+   "sigla": "FIS1533",
+   "seccion": 1,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "AYU",
+     "sala": "CS203"
+    },
+    {
+     "modulos": "L-W:4",
+     "tipo": "CLAS",
+     "sala": "CS203"
+    }
+   ]
+  },
+  {
+   "nrc": "16180",
+   "sigla": "FIS1533",
+   "seccion": 2,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:5",
+     "tipo": "CLAS",
+     "sala": "CS204"
+    },
+    {
+     "modulos": "M-J:4",
+     "tipo": "AYU",
+     "sala": "BC24"
+    }
+   ]
+  },
+  {
+   "nrc": "16183",
+   "sigla": "FIS1533",
+   "seccion": 3,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "B25"
+    },
+    {
+     "modulos": "M-J:4",
+     "tipo": "AYU",
+     "sala": "AE104"
+    }
+   ]
+  },
+  {
+   "nrc": "16186",
+   "sigla": "FIS1533",
+   "seccion": 4,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "CLAS",
+     "sala": "B13"
+    },
+    {
+     "modulos": "L-W:4",
+     "tipo": "AYU",
+     "sala": "AE201"
+    }
+   ]
+  },
+  {
+   "nrc": "16188",
+   "sigla": "FIS1533",
+   "seccion": 5,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "AYU",
+     "sala": "B18"
+    },
+    {
+     "modulos": "L-W:4",
+     "tipo": "CLAS",
+     "sala": "AP302"
+    }
+   ]
+  },
+  {
+   "nrc": "26895",
+   "sigla": "FIS1533",
+   "seccion": 6,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "CLAS",
+     "sala": "D306"
+    },
+    {
+     "modulos": "L-W:4",
+     "tipo": "AYU",
+     "sala": "BC24"
+    }
+   ]
+  },
+  {
+   "nrc": "28138",
+   "sigla": "FIS1533",
+   "seccion": 7,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "AYU",
+     "sala": "CS303"
+    },
+    {
+     "modulos": "L-W:4",
+     "tipo": "CLAS",
+     "sala": "C202"
+    }
+   ]
+  },
+  {
+   "nrc": "33299",
+   "sigla": "FIS1533",
+   "seccion": 8,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "AYU",
+     "sala": "NT201"
+    },
+    {
+     "modulos": "M-J:4",
+     "tipo": "CLAS",
+     "sala": "C201"
+    }
+   ]
+  },
+  {
+   "nrc": "33555",
+   "sigla": "FIS1533",
+   "seccion": 9,
+   "nombre": "Electricidad y Magnetismo",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "D304"
+    },
+    {
+     "modulos": "M-J:4",
+     "tipo": "AYU",
+     "sala": "NT201"
+    }
+   ]
+  },
+  {
+   "nrc": "22983",
+   "sigla": "ICE1514",
+   "seccion": 1,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "B23"
+    },
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "B11"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "B23"
+    }
+   ]
+  },
+  {
+   "nrc": "22984",
+   "sigla": "ICE1514",
+   "seccion": 2,
+   "nombre": "Dinámica",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:3",
+     "tipo": "CLAS",
+     "sala": "CS204"
+    },
+    {
+     "modulos": "J:4",
+     "tipo": "AYU",
+     "sala": "B12"
+    },
+    {
+     "modulos": "V:3",
+     "tipo": "TAL",
+     "sala": "B23"
+    }
+   ]
+  },
+  {
+   "nrc": "24622",
+   "sigla": "ICS1513",
+   "seccion": 1,
+   "nombre": "Introducción a la Economía",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "CS-101"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "B12"
+    }
+   ]
+  },
+  {
+   "nrc": "12527",
+   "sigla": "ICS1513",
+   "seccion": 2,
+   "nombre": "Introducción a la Economía",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "CS-102"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "TAL",
+     "sala": "C201"
+    }
+   ]
+  },
+  {
+   "nrc": "24620",
+   "sigla": "ICS1513",
+   "seccion": 3,
+   "nombre": "Introducción a la Economía",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L:6",
+     "tipo": "TAL",
+     "sala": "CS303"
+    },
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "AE002"
+    }
+   ]
+  },
+  {
+   "nrc": "31078",
+   "sigla": "ICS1513",
+   "seccion": 4,
+   "nombre": "Introducción a la Economía",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "CLAS",
+     "sala": "BC24"
+    },
+    {
+     "modulos": "V:1",
+     "tipo": "TAL",
+     "sala": "B13"
+    }
+   ]
+  },
+  {
+   "nrc": "34201",
+   "sigla": "ICS1513",
+   "seccion": 5,
+   "nombre": "Introducción a la Economía",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "CLAS",
+     "sala": "B23"
+    },
+    {
+     "modulos": "V:1",
+     "tipo": "TAL",
+     "sala": "B23"
+    }
+   ]
+  },
+  {
+   "nrc": "12250",
+   "sigla": "IIC1103",
+   "seccion": 1,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L:5,6",
+     "tipo": "LAB",
+     "sala": "AE002"
+    },
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "AE107"
+    }
+   ]
+  },
+  {
+   "nrc": "12285",
+   "sigla": "IIC1103",
+   "seccion": 2,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L:5,6",
+     "tipo": "LAB",
+     "sala": "K202"
+    },
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "R6"
+    }
+   ]
+  },
+  {
+   "nrc": "12303",
+   "sigla": "IIC1103",
+   "seccion": 3,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "C201"
+    },
+    {
+     "modulos": "W:5,6",
+     "tipo": "LAB",
+     "sala": "AE002"
+    }
+   ]
+  },
+  {
+   "nrc": "12273",
+   "sigla": "IIC1103",
+   "seccion": 4,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "AE105"
+    },
+    {
+     "modulos": "M:5,6",
+     "tipo": "LAB",
+     "sala": "BC24"
+    }
+   ]
+  },
+  {
+   "nrc": "12259",
+   "sigla": "IIC1103",
+   "seccion": 5,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "C202"
+    },
+    {
+     "modulos": "W:5,6",
+     "tipo": "LAB",
+     "sala": "C202"
+    }
+   ]
+  },
+  {
+   "nrc": "12239",
+   "sigla": "IIC1103",
+   "seccion": 6,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "K203"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "LAB",
+     "sala": "AE004"
+    }
+   ]
+  },
+  {
+   "nrc": "12227",
+   "sigla": "IIC1103",
+   "seccion": 7,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "K202"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "LAB",
+     "sala": "K204"
+    }
+   ]
+  },
+  {
+   "nrc": "32980",
+   "sigla": "IIC1103",
+   "seccion": 8,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "B23"
+    },
+    {
+     "modulos": "M:5,6",
+     "tipo": "LAB",
+     "sala": "AE107"
+    }
+   ]
+  },
+  {
+   "nrc": "25950",
+   "sigla": "IIC1103",
+   "seccion": 9,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "AE107"
+    },
+    {
+     "modulos": "V:5,6",
+     "tipo": "LAB",
+     "sala": "A5"
+    }
+   ]
+  },
+  {
+   "nrc": "25954",
+   "sigla": "IIC1103",
+   "seccion": 10,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "AE002"
+    },
+    {
+     "modulos": "V:5,6",
+     "tipo": "LAB",
+     "sala": "C201"
+    }
+   ]
+  },
+  {
+   "nrc": "28729",
+   "sigla": "IIC1103",
+   "seccion": 11,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "AE202"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "LAB",
+     "sala": "AE101"
+    }
+   ]
+  },
+  {
+   "nrc": "34716",
+   "sigla": "IIC1103",
+   "seccion": 12,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "AE101"
+    },
+    {
+     "modulos": "W:5,6",
+     "tipo": "LAB",
+     "sala": "B12"
+    }
+   ]
+  },
+  {
+   "nrc": "34717",
+   "sigla": "IIC1103",
+   "seccion": 13,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L:5,6",
+     "tipo": "LAB",
+     "sala": "C201"
+    },
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "K204"
+    }
+   ]
+  },
+  {
+   "nrc": "34719",
+   "sigla": "IIC1103",
+   "seccion": 14,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "AE203"
+    },
+    {
+     "modulos": "M:5,6",
+     "tipo": "LAB",
+     "sala": "AE004"
+    }
+   ]
+  },
+  {
+   "nrc": "34721",
+   "sigla": "IIC1103",
+   "seccion": 15,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "AE101"
+    },
+    {
+     "modulos": "M:5",
+     "tipo": "LAB",
+     "sala": "B12"
+    }
+   ]
+  },
+  {
+   "nrc": "34722",
+   "sigla": "IIC1103",
+   "seccion": 16,
+   "nombre": "Introducción a la Programación",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2",
+     "tipo": "CLAS",
+     "sala": "AE004"
+    },
+    {
+     "modulos": "M:5,6",
+     "tipo": "LAB",
+     "sala": "AE101"
+    }
+   ]
+  },
+  {
+   "nrc": "12315",
+   "sigla": "IIC1253",
+   "seccion": 1,
+   "nombre": "Matemáticas Discretas",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "K200"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "A3"
+    }
+   ]
+  },
+  {
+   "nrc": "20507",
+   "sigla": "IIC1253",
+   "seccion": 2,
+   "nombre": "Matemáticas Discretas",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "B12"
+    },
+    {
+     "modulos": "V:2",
+     "tipo": "TAL",
+     "sala": "B11"
+    }
+   ]
+  },
+  {
+   "nrc": "32737",
+   "sigla": "IIC1253",
+   "seccion": 3,
+   "nombre": "Matemáticas Discretas",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:3",
+     "tipo": "CLAS",
+     "sala": "AE101"
+    },
+    {
+     "modulos": "V:3",
+     "tipo": "TAL",
+     "sala": "K201"
+    }
+   ]
+  },
+  {
+   "nrc": "12431",
+   "sigla": "IIC2233",
+   "seccion": 1,
+   "nombre": "Programación Avanzada",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "AE102"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "CLAS",
+     "sala": "BC24"
+    }
+   ]
+  },
+  {
+   "nrc": "15428",
+   "sigla": "IIC2233",
+   "seccion": 2,
+   "nombre": "Programación Avanzada",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "B13"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "CLAS",
+     "sala": "AE102"
+    }
+   ]
+  },
+  {
+   "nrc": "18177",
+   "sigla": "IIC2233",
+   "seccion": 3,
+   "nombre": "Programación Avanzada",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M:5",
+     "tipo": "AYU",
+     "sala": "B13"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "CLAS",
+     "sala": "CS204"
+    }
+   ]
+  },
+  {
+   "nrc": "25239",
+   "sigla": "IIC2233",
+   "seccion": 4,
+   "nombre": "Programación Avanzada",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M:5",
+     "tipo": "AYU",
+     "sala": "B11"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "CLAS",
+     "sala": "AE001"
+    }
+   ]
+  },
+  {
+   "nrc": "29652",
+   "sigla": "IIC2233",
+   "seccion": 5,
+   "nombre": "Programación Avanzada",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE105"
+    },
+    {
+     "modulos": "J:5,6",
+     "tipo": "CLAS",
+     "sala": "AE107"
+    }
+   ]
+  },
+  {
+   "nrc": "12462",
+   "sigla": "IIC2343",
+   "seccion": 1,
+   "nombre": "Arquitectura de Computadores",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:1",
+     "tipo": "CLAS",
+     "sala": "A6"
+    },
+    {
+     "modulos": "M:5,6",
+     "tipo": "TAL",
+     "sala": null
+    },
+    {
+     "modulos": "J:5",
+     "tipo": "AYU",
+     "sala": "A1"
+    }
+   ]
+  },
+  {
+   "nrc": "27150",
+   "sigla": "IIC2343",
+   "seccion": 2,
+   "nombre": "Arquitectura de Computadores",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1",
+     "tipo": "CLAS",
+     "sala": "A4"
+    },
+    {
+     "modulos": "W:5,6",
+     "tipo": "TAL",
+     "sala": null
+    },
+    {
+     "modulos": "J:5",
+     "tipo": "AYU",
+     "sala": "A1"
+    }
+   ]
+  },
+  {
+   "nrc": "14268",
+   "sigla": "MAT1203",
+   "seccion": 1,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "AE203"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "BC23"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29098",
+   "sigla": "MAT1203",
+   "seccion": 2,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "AE203"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "B21"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "13142",
+   "sigla": "MAT1203",
+   "seccion": 3,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "A5"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "NT201"
+    },
+    {
+     "modulos": "V:5",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29105",
+   "sigla": "MAT1203",
+   "seccion": 4,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "A5"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "FT-102"
+    },
+    {
+     "modulos": "V:5",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14262",
+   "sigla": "MAT1203",
+   "seccion": 5,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "AL4"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "AYU",
+     "sala": "B22"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29101",
+   "sigla": "MAT1203",
+   "seccion": 6,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "AL4"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "AYU",
+     "sala": "BC25"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29159",
+   "sigla": "MAT1203",
+   "seccion": 7,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "K204"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "C510"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29108",
+   "sigla": "MAT1203",
+   "seccion": 8,
+   "nombre": "Álgebra Lineal",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "K204"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "D306"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "24322",
+   "sigla": "MAT1610",
+   "seccion": 1,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "C003"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "B25"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29049",
+   "sigla": "MAT1610",
+   "seccion": 2,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "C003"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "CS303"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14135",
+   "sigla": "MAT1610",
+   "seccion": 3,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "M2"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE201"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29051",
+   "sigla": "MAT1610",
+   "seccion": 4,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "M2"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE204"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "25223",
+   "sigla": "MAT1610",
+   "seccion": 5,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "AM3"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "B13"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29053",
+   "sigla": "MAT1610",
+   "seccion": 6,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "AM3"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "BC23"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "27448",
+   "sigla": "MAT1610",
+   "seccion": 7,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "AE004"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE001"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29055",
+   "sigla": "MAT1610",
+   "seccion": 8,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "AE004"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE213"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "24323",
+   "sigla": "MAT1610",
+   "seccion": 9,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "M1"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "B18"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29050",
+   "sigla": "MAT1610",
+   "seccion": 10,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "M1"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "BC24"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "24329",
+   "sigla": "MAT1610",
+   "seccion": 11,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D304"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "C304"
+    }
+   ]
+  },
+  {
+   "nrc": "29052",
+   "sigla": "MAT1610",
+   "seccion": 12,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D304"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "AYU",
+     "sala": "C303"
+    }
+   ]
+  },
+  {
+   "nrc": "27447",
+   "sigla": "MAT1610",
+   "seccion": 13,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "AE001"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE003"
+    },
+    {
+     "modulos": "V:5",
+     "tipo": "CLAS",
+     "sala": "AE002"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "29054",
+   "sigla": "MAT1610",
+   "seccion": 14,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "AE001"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE203"
+    },
+    {
+     "modulos": "V:5",
+     "tipo": "CLAS",
+     "sala": "AE002"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "33944",
+   "sigla": "MAT1610",
+   "seccion": 15,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D306"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "D203"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "33946",
+   "sigla": "MAT1610",
+   "seccion": 16,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D104"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "D202"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "33950",
+   "sigla": "MAT1610",
+   "seccion": 17,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "AE207"
+    },
+    {
+     "modulos": "L:5",
+     "tipo": "AYU",
+     "sala": "D101"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "33951",
+   "sigla": "MAT1610",
+   "seccion": 18,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D204"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "AYU",
+     "sala": "D101"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "33952",
+   "sigla": "MAT1610",
+   "seccion": 19,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D303"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "AYU",
+     "sala": "D305"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "33954",
+   "sigla": "MAT1610",
+   "seccion": 20,
+   "nombre": "Cálculo I",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "D302"
+    },
+    {
+     "modulos": "W:5",
+     "tipo": "AYU",
+     "sala": "D203"
+    },
+    {
+     "modulos": "W:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14182",
+   "sigla": "MAT1620",
+   "seccion": 1,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "A5"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "AE202"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14178",
+   "sigla": "MAT1620",
+   "seccion": 2,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "A5"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "B17"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14174",
+   "sigla": "MAT1620",
+   "seccion": 3,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "AYU",
+     "sala": "B23"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14163",
+   "sigla": "MAT1620",
+   "seccion": 4,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "AYU",
+     "sala": "E10"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14170",
+   "sigla": "MAT1620",
+   "seccion": 5,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "AUD_AP"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "B23"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14166",
+   "sigla": "MAT1620",
+   "seccion": 6,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "AUD_AP"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "B18"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "11704",
+   "sigla": "MAT1620",
+   "seccion": 7,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "A3"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "AYU",
+     "sala": "BC24"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "11684",
+   "sigla": "MAT1620",
+   "seccion": 8,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:3",
+     "tipo": "CLAS",
+     "sala": "A3"
+    },
+    {
+     "modulos": "L:6",
+     "tipo": "AYU",
+     "sala": "B17"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14159",
+   "sigla": "MAT1620",
+   "seccion": 9,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:2",
+     "tipo": "CLAS",
+     "sala": "M1"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "B12"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14185",
+   "sigla": "MAT1620",
+   "seccion": 10,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:2",
+     "tipo": "CLAS",
+     "sala": "M1"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "D305"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14195",
+   "sigla": "MAT1620",
+   "seccion": 11,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "AUD_AP"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:5",
+     "tipo": "CLAS",
+     "sala": "ALT"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "AYU",
+     "sala": "AE201"
+    }
+   ]
+  },
+  {
+   "nrc": "14191",
+   "sigla": "MAT1620",
+   "seccion": 12,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "AUD_AP"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:5",
+     "tipo": "CLAS",
+     "sala": "ALT"
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "AYU",
+     "sala": "AE003"
+    }
+   ]
+  },
+  {
+   "nrc": "20828",
+   "sigla": "MAT1620",
+   "seccion": 13,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "M2"
+    },
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "N7"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "20829",
+   "sigla": "MAT1620",
+   "seccion": 14,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "M2"
+    },
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "CS204"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "20832",
+   "sigla": "MAT1620",
+   "seccion": 15,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "AYU",
+     "sala": "AE202"
+    }
+   ]
+  },
+  {
+   "nrc": "20833",
+   "sigla": "MAT1620",
+   "seccion": 16,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "AYU",
+     "sala": "AE105"
+    }
+   ]
+  },
+  {
+   "nrc": "24332",
+   "sigla": "MAT1620",
+   "seccion": 17,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "A7"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "AYU",
+     "sala": "AE004"
+    }
+   ]
+  },
+  {
+   "nrc": "24333",
+   "sigla": "MAT1620",
+   "seccion": 18,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:5",
+     "tipo": "CLAS",
+     "sala": "A7"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:6",
+     "tipo": "AYU",
+     "sala": "AE203"
+    }
+   ]
+  },
+  {
+   "nrc": "35311",
+   "sigla": "MAT1620",
+   "seccion": 19,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:2",
+     "tipo": "CLAS",
+     "sala": "AP501"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "E17"
+    },
+    {
+     "modulos": "J:2",
+     "tipo": "LAB",
+     "sala": "C301"
+    }
+   ]
+  },
+  {
+   "nrc": "35312",
+   "sigla": "MAT1620",
+   "seccion": 20,
+   "nombre": "Cálculo II",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W-V:4",
+     "tipo": "CLAS",
+     "sala": "AL3"
+    },
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "C307"
+    },
+    {
+     "modulos": "J:3",
+     "tipo": "LAB",
+     "sala": "AP003"
+    }
+   ]
+  },
+  {
+   "nrc": "14202",
+   "sigla": "MAT1630",
+   "seccion": 1,
+   "nombre": "Cálculo III",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "C003"
+    },
+    {
+     "modulos": "M:5",
+     "tipo": "AYU",
+     "sala": "C200"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14205",
+   "sigla": "MAT1630",
+   "seccion": 2,
+   "nombre": "Cálculo III",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2",
+     "tipo": "CLAS",
+     "sala": "C003"
+    },
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "B12"
+    },
+    {
+     "modulos": "J:4",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14223",
+   "sigla": "MAT1630",
+   "seccion": 3,
+   "nombre": "Cálculo III",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:3",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "J:5",
+     "tipo": "AYU",
+     "sala": "N4"
+    }
+   ]
+  },
+  {
+   "nrc": "14220",
+   "sigla": "MAT1630",
+   "seccion": 4,
+   "nombre": "Cálculo III",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:3",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "M:4",
+     "tipo": "AYU",
+     "sala": "B23"
+    },
+    {
+     "modulos": "J:4",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14250",
+   "sigla": "MAT1640",
+   "seccion": 1,
+   "nombre": "Ecuaciones Diferenciales",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:3",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "W:4",
+     "tipo": "AYU",
+     "sala": "B24"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "LAB",
+     "sala": null
+    }
+   ]
+  },
+  {
+   "nrc": "14246",
+   "sigla": "MAT1640",
+   "seccion": 2,
+   "nombre": "Ecuaciones Diferenciales",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L:4",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "M-J:3",
+     "tipo": "CLAS",
+     "sala": "A1"
+    },
+    {
+     "modulos": "M:6",
+     "tipo": "AYU",
+     "sala": "B13"
+    }
+   ]
+  },
+  {
+   "nrc": "14242",
+   "sigla": "MAT1640",
+   "seccion": 3,
+   "nombre": "Ecuaciones Diferenciales",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:3",
+     "tipo": "CLAS",
+     "sala": "A5"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:4",
+     "tipo": "AYU",
+     "sala": "BC24"
+    }
+   ]
+  },
+  {
+   "nrc": "26653",
+   "sigla": "MAT1640",
+   "seccion": 4,
+   "nombre": "Ecuaciones Diferenciales",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:3",
+     "tipo": "CLAS",
+     "sala": "A5"
+    },
+    {
+     "modulos": "J:6",
+     "tipo": "LAB",
+     "sala": null
+    },
+    {
+     "modulos": "V:4",
+     "tipo": "AYU",
+     "sala": "C200"
+    }
+   ]
+  },
+  {
+   "nrc": "23598",
+   "sigla": "QIM100E",
+   "seccion": 1,
+   "nombre": "Química para Ingeniería",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2,3",
+     "tipo": "CLAS",
+     "sala": "AM1"
+    }
+   ]
+  },
+  {
+   "nrc": "33578",
+   "sigla": "QIM100E",
+   "seccion": 2,
+   "nombre": "Química para Ingeniería",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:2,3",
+     "tipo": "CLAS",
+     "sala": "AM3"
+    }
+   ]
+  },
+  {
+   "nrc": "34391",
+   "sigla": "QIM100E",
+   "seccion": 3,
+   "nombre": "Química para Ingeniería",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:1,2",
+     "tipo": "CLAS",
+     "sala": "D101"
+    }
+   ]
+  },
+  {
+   "nrc": "34392",
+   "sigla": "QIM100E",
+   "seccion": 4,
+   "nombre": "Química para Ingeniería",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "L-W:2,3",
+     "tipo": "CLAS",
+     "sala": "D203"
+    }
+   ]
+  },
+  {
+   "nrc": "34393",
+   "sigla": "QIM100E",
+   "seccion": 5,
+   "nombre": "Química para Ingeniería",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:5,6",
+     "tipo": "CLAS",
+     "sala": "D203"
+    }
+   ]
+  },
+  {
+   "nrc": "34394",
+   "sigla": "QIM100E",
+   "seccion": 6,
+   "nombre": "Química para Ingeniería",
+   "creditos": 10,
+   "horario": [
+    {
+     "modulos": "M-J:5,6",
+     "tipo": "CLAS",
+     "sala": "AP302"
+    }
+   ]
+  }
+ ]
+}

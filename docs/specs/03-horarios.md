@@ -20,4 +20,6 @@ El usuario puede guardar su horario semanal e indicar cuánto tiempo estará en 
 
 **Aceptación** · Los bloques persisten al reabrir la app. Bloques inválidos y archivos ilegibles se informan sin perder el horario anterior. Importar un archivo de prueba permite revisar los bloques antes de guardar. Editar una visita conserva la reserva confirmada hasta que se acepte una alternativa.
 
+**Horario UC simulado** · Mientras no exista autorización para conectarse a los sistemas UC, la app simula esa conexión con estudiantes de prueba armados con secciones reales de Buscacursos (San Joaquín, 2026-2). Respeta el formato de módulos (`L-W-V:4`), los tipos de actividad y las salas, permite cambiarse de sección, agregar o quitar cursos como en la modificación de horario, y muestra las diferencias antes de sincronizar. Sincronizar reemplaza solo los bloques de origen UC; los agregados a mano o importados se conservan.
+
 **Pendiente para piloto** · Validar un `.ics` representativo y el mapeo de sus ubicaciones. Una integración directa con sistemas UC requiere autorización.

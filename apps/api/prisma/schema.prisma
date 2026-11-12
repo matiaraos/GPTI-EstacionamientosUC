@@ -50,6 +50,7 @@ model Destino {
   desempates       Reserva[]         @relation("DestinoDesempate")
   esperas          SolicitudEspera[] @relation("EsperaDestino")
   esperasDesempate SolicitudEspera[] @relation("EsperaDesempate")
+  actividadesUC    ActividadUC[]
 
   @@index([nombre])
 }
@@ -162,21 +163,93 @@ model AutorizacionPreferente {
 /// Los bloques de un mismo día no se solapan (restricción de exclusión en la migración). Editar el
 /// horario no cambia las reservas ya confirmadas.
 model BloqueClase {
-  id           Int      @id @default(autoincrement())
-  cuentaId     Int
-  cuenta       Cuenta   @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
-  destinoId    Int
-  destino      Destino  @relation(fields: [destinoId], references: [id], onDelete: Restrict)
-  diaSemana    Int
+  id            Int          @id @default(autoincrement())
+  cuentaId      Int
+  cuenta        Cuenta       @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  destinoId     Int
+  destino       Destino      @relation(fields: [destinoId], references: [id], onDelete: Restrict)
+  diaSemana     Int
   /// Minutos desde medianoche, intervalo `[inicioMinuto, finMinuto)`.
-  inicioMinuto Int
-  finMinuto    Int
+  inicioMinuto  Int
+  finMinuto     Int
   /// Nombre del curso o actividad, si se conoce (por ejemplo, el SUMMARY del .ics).
-  titulo       String?
-  creadoEn     DateTime @default(now()) @db.Timestamptz(3)
+  titulo        String?
+  /// `uc` si viene del horario UC conectado; se reemplaza al sincronizar sin tocar los demás.
+  origen        OrigenBloque @default(manual)
+  actividadUCId Int?
+  actividadUC   ActividadUC? @relation(fields: [actividadUCId], references: [id], onDelete: SetNull)
+  creadoEn      DateTime     @default(now()) @db.Timestamptz(3)
 
   @@index([cuentaId, diaSemana])
   @@index([destinoId])
+  @@index([actividadUCId])
+}
+
+enum OrigenBloque {
+  manual
+  ics
+  uc
+}
+
+/// Sección de un curso UC dictada en San Joaquín, cargada desde Buscacursos (`docs/campus-san-joaquin/cursos-uc.json`).
+model CursoUC {
+  id          Int           @id @default(autoincrement())
+  semestre    String
+  nrc         String        @unique
+  sigla       String
+  seccion     Int
+  nombre      String
+  creditos    Int
+  actividades ActividadUC[]
+
+  @@unique([semestre, sigla, seccion])
+  @@index([sigla])
+}
+
+/// Actividad de una sección con el formato de Buscacursos: `L-W-V:4` es lunes, miércoles y viernes en
+/// el módulo 4. `sala` nula equivale a «SIN SALA». `destinoId` es la sala del catálogo cuando la
+/// coincidencia es única.
+model ActividadUC {
+  id        Int           @id @default(autoincrement())
+  cursoId   Int
+  curso     CursoUC       @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  /// Tipo de Buscacursos: CLAS, AYU, LAB, TAL, TER, PRA…
+  tipo      String
+  /// Texto original, por ejemplo `L-W-V:4`.
+  modulos   String
+  dias      Int[]
+  numeros   Int[]
+  sala      String?
+  destinoId Int?
+  destino   Destino?      @relation(fields: [destinoId], references: [id], onDelete: SetNull)
+  bloques   BloqueClase[]
+
+  @@index([cursoId])
+  @@index([destinoId])
+}
+
+/// Estudiante ficticio con una inscripción de prueba. Reemplaza al inicio de sesión UC en la demo.
+model PerfilUC {
+  id         Int          @id @default(autoincrement())
+  codigo     String       @unique
+  nombre     String
+  carrera    String
+  nrcs       String[]
+  conexiones ConexionUC[]
+}
+
+/// Conexión simulada de una cuenta con su horario UC. `nrcs` es la inscripción vigente: parte del
+/// perfil y cambia con la modificación de horario (agregar, quitar o cambiar de sección).
+model ConexionUC {
+  cuentaId       Int       @id
+  cuenta         Cuenta    @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  perfilId       Int
+  perfil         PerfilUC  @relation(fields: [perfilId], references: [id], onDelete: Restrict)
+  nrcs           String[]
+  conectadaEn    DateTime  @db.Timestamptz(3)
+  sincronizadaEn DateTime? @db.Timestamptz(3)
+
+  @@index([perfilId])
 }
 
 enum Rol {
@@ -203,6 +276,7 @@ model Cuenta {
   ajustesRanking          AjusteRanking[]          @relation("AjustesRecibidos")
   rectificaciones         AjusteRanking[]          @relation("Rectificaciones")
   solicitudEsperas        SolicitudEspera[]
+  conexionUC              ConexionUC?
   incidentesReportados    Incidente[]              @relation("IncidentesReportados")
   incidentesResueltos     Incidente[]              @relation("IncidentesResueltos")
 }

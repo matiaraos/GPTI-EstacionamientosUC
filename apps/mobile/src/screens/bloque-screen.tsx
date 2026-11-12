@@ -7,6 +7,8 @@ import { crearBloque, editarBloque, eliminarBloque } from "@/api/horario";
 import { Button } from "@/components/button";
 import { DateTimeField } from "@/components/date-time-field";
 import { DayPicker } from "@/components/day-picker";
+import { ModuloPicker } from "@/components/modulo-picker";
+import { ThemedText } from "@/components/themed-text";
 import { FormScreen } from "@/components/form-screen";
 import { Notice } from "@/components/notice";
 import { FieldError, ListRow, Section } from "@/components/section";
@@ -47,6 +49,9 @@ export default function BloqueScreen() {
   return (
     <FormScreen>
       {message ? <Notice message={message} /> : null}
+      {borrador.uc ? (
+        <Notice tone="info" message="Este bloque viene de tu horario UC. Si lo cambias, la próxima sincronización mostrará la diferencia." />
+      ) : null}
 
       <View style={{ gap: spacing.sm }}>
         <DayPicker value={borrador.diaSemana} onChange={(diaSemana) => cambiar({ diaSemana })} />
@@ -54,7 +59,11 @@ export default function BloqueScreen() {
       </View>
 
       <View style={{ gap: spacing.sm }}>
-        <Section title="Horario" footer="Horas de Santiago.">
+        <ThemedText variant="overline" style={{ paddingHorizontal: spacing.md }}>
+          Módulos UC
+        </ThemedText>
+        <ModuloPicker inicio={borrador.inicio} fin={borrador.fin} onChange={(rango) => cambiar(rango)} />
+        <Section title="Horario" footer="Horas de Santiago. Toca un módulo, o el siguiente para extenderlo, o ajusta la hora exacta.">
           <DateTimeField label="Inicio" icon="arrival" mode="time" value={borrador.inicio} onChange={(inicio) => cambiar({ inicio })} error={Boolean(fields.inicio)} />
           <DateTimeField label="Término" icon="departure" mode="time" value={borrador.fin} onChange={(fin) => cambiar({ fin })} error={Boolean(fields.fin)} />
         </Section>

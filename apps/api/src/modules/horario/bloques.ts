@@ -20,6 +20,8 @@ export const bloqueSchema = z
       .int("Elige la sala o el edificio de la clase.")
       .positive("Elige la sala o el edificio de la clase."),
     titulo: z.string().trim().max(120).nullish(),
+    /** `ics` para los bloques confirmados desde un archivo; por defecto `manual`. */
+    origen: z.enum(["manual", "ics"]).default("manual"),
   })
   .refine((b) => aMinutos(b.fin) > aMinutos(b.inicio), { message: "El término debe ser posterior al inicio.", path: ["fin"] });
 
@@ -58,12 +60,26 @@ export async function erroresDeBloques(
   return details;
 }
 
-export const incluirBloque = { destino: { select: { id: true, idOrigen: true, nombre: true, tipo: true, pisos: true } } } as const;
+export const incluirBloque = {
+  destino: { select: { id: true, idOrigen: true, nombre: true, tipo: true, pisos: true } },
+  actividadUC: { select: { tipo: true, modulos: true, sala: true, curso: { select: { sigla: true, seccion: true, nombre: true, nrc: true } } } },
+} as const;
 
 type BloqueConDestino = Prisma.BloqueClaseGetPayload<{ include: typeof incluirBloque }>;
 
 export function bloquePublico(b: BloqueConDestino) {
-  return { id: b.id, diaSemana: b.diaSemana, inicio: aHora(b.inicioMinuto), fin: aHora(b.finMinuto), titulo: b.titulo, destino: b.destino };
+  return {
+    id: b.id,
+    diaSemana: b.diaSemana,
+    inicio: aHora(b.inicioMinuto),
+    fin: aHora(b.finMinuto),
+    titulo: b.titulo,
+    origen: b.origen,
+    destino: b.destino,
+    curso: b.actividadUC
+      ? { ...b.actividadUC.curso, tipo: b.actividadUC.tipo, modulos: b.actividadUC.modulos, sala: b.actividadUC.sala }
+      : null,
+  };
 }
 
 export const datosFila = (cuentaId: number, b: DatosBloque) => ({
@@ -73,6 +89,7 @@ export const datosFila = (cuentaId: number, b: DatosBloque) => ({
   inicioMinuto: aMinutos(b.inicio),
   finMinuto: aMinutos(b.fin),
   titulo: b.titulo ?? null,
+  origen: b.origen,
 });
 
 export const horarioInvalido = (details: ErrorDetails) =>

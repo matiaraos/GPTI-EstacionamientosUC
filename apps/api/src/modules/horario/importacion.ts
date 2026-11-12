@@ -42,7 +42,7 @@ function diasDeRegla(regla: unknown): number[] {
     .filter((d): d is number => typeof d === "number" && d >= 1 && d <= 7);
 }
 
-async function buscarCoincidencias(db: Database, ubicacion: string): Promise<DestinoCoincidente[]> {
+export async function buscarCoincidencias(db: Database, ubicacion: string): Promise<DestinoCoincidente[]> {
   const exactas = await db.$queryRaw<DestinoCoincidente[]>`
     SELECT "id", "idOrigen", "nombre", "tipo", "pisos" FROM "Destino"
     WHERE "activo" AND (upper("idOrigen") = upper(${ubicacion}) OR upper("idOrigen") LIKE upper(${ubicacion}) || '-%' OR lower("nombre") = lower(${ubicacion}))
