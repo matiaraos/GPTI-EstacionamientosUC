@@ -13,7 +13,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "catalogo:importar": "tsx src/scripts/importar-catalogo.ts"
+    "catalogo:importar": "tsx src/scripts/importar-catalogo.ts",
+    "piloto:simular": "tsx src/scripts/simular-piloto.ts",
+    "piloto:cerrar": "tsx src/scripts/cerrar-piloto.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",

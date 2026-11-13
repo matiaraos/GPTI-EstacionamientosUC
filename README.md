@@ -43,6 +43,10 @@ Configura `EXPO_PUBLIC_API_URL` en `apps/mobile/.env`. El ejemplo usa `10.0.2.2`
 
 Crea e instala la compilación de desarrollo desde `apps/mobile` con `npx expo run:android` o `npx expo run:ios` (macOS y Xcode). Para iniciar Metro en sesiones posteriores, ejecuta `npm run dev:mobile` desde la raíz y abre la compilación instalada. Sin sesión, la app abre el inicio de sesión; el diagnóstico de conexión está en `/diagnostico`. Las rutas viven en `src/app`, las pantallas en `src/screens`, las consultas HTTP en `src/api`, el tema en `src/theme` y los componentes compartidos en `src/components` dentro del workspace móvil. [Compilaciones de desarrollo de Expo](https://docs.expo.dev/develop/development-builds/introduction/)
 
+### Piloto
+
+`npm run piloto:simular -w @miestacionamientouc/api -- --desde 2026-11-23 --dias 5 --usuarios 60` genera datos con cuentas ficticias marcadas como simulación para probar el panel de Indicadores; no acreditan las metas. Al terminar el piloto, `npm run piloto:cerrar -w @miestacionamientouc/api -- --confirmar` guarda los indicadores agregados y elimina los datos personales.
+
 ### Verificación
 
 ```bash
