@@ -7,6 +7,7 @@ export default function CuentaLayout() {
     <Stack screenOptions={stackOptions}>
       <Stack.Screen name="cuenta" options={{ title: "Mi cuenta" }} />
       <Stack.Screen name="horario" options={{ title: "Mi horario" }} />
+      <Stack.Screen name="avisos" options={{ title: "Avisos" }} />
       <Stack.Screen name="puntaje" options={{ title: "Mi puntaje" }} />
       <Stack.Screen name="bloque" options={{ title: "Bloque de clase", headerLargeTitleEnabled: false }} />
       <Stack.Screen name="conectar-uc" options={{ title: "Horario UC", presentation: "modal", headerLargeTitleEnabled: false }} />

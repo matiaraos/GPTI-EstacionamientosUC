@@ -7,6 +7,7 @@ import type { Database } from "../../lib/prisma.js";
 import { restriccionUnica } from "../../lib/prisma-errors.js";
 import { partesLocales } from "../../lib/tiempo.js";
 import { resolverQr } from "../catalogo/qr.js";
+import { cancelarRecordatorios } from "../avisos/registro.js";
 import { ajustarPorReserva } from "../ranking/ajustes.js";
 import { incluirReserva, type ReservaConInclusiones } from "./presentacion.js";
 
@@ -198,6 +199,8 @@ export async function registrarSalida(
       reserva.estado,
       reserva.estado === "en_uso" ? "finalizada" : "vencida",
       async (tx, registradoEn) => {
+        // Con la salida registrada no corresponde recordarla.
+        await cancelarRecordatorios(tx, reserva.id, registradoEn);
         if (reserva.estado !== "en_uso") return;
         const plazo = reserva.fin.getTime() + config.toleranciaSalidaMin * 60_000;
         await ajustarPorReserva(tx, ranking, reserva, registradoEn.getTime() <= plazo ? "salida_a_tiempo" : "salida_tardia", registradoEn);

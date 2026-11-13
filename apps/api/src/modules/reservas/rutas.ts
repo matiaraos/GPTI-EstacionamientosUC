@@ -10,6 +10,7 @@ import { validarVisita, visitaSchema } from "../visitas/validacion.js";
 import { cambiarReserva, reservar } from "./asignacion.js";
 import { atenderEsperas, crearEspera, esperaPublica, incluirEspera } from "./espera.js";
 import { CoordinadorSimultaneidad } from "./simultaneidad.js";
+import { avisarCancelacion, avisarSinCupo } from "../avisos/registro.js";
 import { puntajeDe } from "../ranking/ajustes.js";
 import { incluirReserva, reservaPublica } from "./presentacion.js";
 import { registrarEntrada, registrarSalida, type ResultadoUso } from "./uso.js";
@@ -74,10 +75,15 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
     const visita = await validarVisita(db, datos, cuentaId);
     // Las solicitudes simultáneas del mismo día se atienden por ranking y antigüedad.
     const puntaje = await puntajeDe(db, cuentaId, ranking);
-    const { reserva, reintento } = await coordinador.encolar(visita.fecha, puntaje, () =>
-      reservar(db, clock, config, { cuentaId, vehiculoId: vehiculo.id, visita, claveIdempotencia }),
-      recibida,
-    );
+    const { reserva, reintento } = await coordinador
+      .encolar(visita.fecha, puntaje, () => reservar(db, clock, config, { cuentaId, vehiculoId: vehiculo.id, visita, claveIdempotencia }), recibida)
+      .catch(async (error: unknown) => {
+        // La falta de disponibilidad también se comunica (una vez por solicitud).
+        if (error instanceof HttpError && error.code === "sin_cupo") {
+          await avisarSinCupo(db, { cuentaId, claveSolicitud: claveIdempotencia, inicio: visita.inicio, fin: visita.fin, ahora: clock() });
+        }
+        throw error;
+      });
     response.status(reintento ? 200 : 201).json({ reserva: reservaPublica(reserva) });
   });
 
@@ -163,9 +169,15 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
   router.post("/reservas/:id/cancelar", async (request, response) => {
     const { id } = parseInput(idSchema, request.params);
     const { cuentaId } = sesionDe(response);
-    await db.reserva.updateMany({
-      where: { id, cuentaId, estado: "confirmada" },
-      data: { estado: "cancelada", canceladaEn: clock() },
+    // Estado, aviso de cancelación y anulación de recordatorios en la misma transacción.
+    await db.$transaction(async (tx) => {
+      const ahora = clock();
+      const { count } = await tx.reserva.updateMany({
+        where: { id, cuentaId, estado: "confirmada" },
+        data: { estado: "cancelada", canceladaEn: ahora },
+      });
+      if (count === 0) return;
+      await avisarCancelacion(tx, await tx.reserva.findUniqueOrThrow({ where: { id }, include: incluirReserva }), ahora);
     });
     const reserva = await db.reserva.findFirst({ where: { id, cuentaId }, include: incluirReserva });
     if (!reserva) {

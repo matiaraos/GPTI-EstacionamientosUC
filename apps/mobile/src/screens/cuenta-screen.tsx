@@ -77,6 +77,10 @@ export default function CuentaScreen() {
         </>
       ) : null}
 
+      <Section title="Avisos">
+        <ListRow icon="info" title="Avisos" detail="Confirmaciones, cambios y recordatorios de salida" onPress={() => router.push("/avisos")} />
+      </Section>
+
       <Section title="Cumplimiento">
         <ListRow icon="star" title="Mi puntaje" detail="Ranking e historial de ajustes" onPress={() => router.push("/puntaje")} />
       </Section>

@@ -15,7 +15,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Flujos principales | [05B](05-uso-y-ranking.md#05b--vencimientos-y-ranking) | Vencimientos y ranking | RF-13–15 | 05A | En curso · [evidencia](#05b--evidencia) |
 | Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | En curso · [evidencia](#04b--evidencia) |
 | Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Verificada · [evidencia](#08a--evidencia) |
-| Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | Pendiente |
+| Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | En curso · [evidencia](#06--evidencia) |
 | Piloto | [07](07-recurrencia.md#07--reservas-recurrentes) | Recurrencia semanal | RF-22 | 06 | Pendiente |
 | Piloto | [08B](08-operacion.md#08b--indicadores-y-cierre-del-piloto) | Indicadores y cierre | RF-21 y RNF del piloto | 01B, 07, 08A | Pendiente |
 
@@ -201,3 +201,18 @@ Rama `tramo/08a-operacion`. Pruebas en `apps/api/test/operacion.test.js` contra 
 | Una cuenta común recibe rechazo | Verificado (API) | Ocupación, período e incidentes (listar, crear, resolver, cerrar) responden `403`. Una persona solo reporta incidentes de sus propias reservas (`POST /incidentes`). |
 | Un incidente sin validar no genera una sanción | Verificado (API) | Reportes pendientes (de la persona y de administración) no generan ajustes; descartar no sanciona y rechaza una sanción. Validar registra responsable y motivo, descuenta una sola vez (`claveOrigen` `incidente:<id>`) y puede bloquear la plaza: queda fuera de nuevas asignaciones, el bloqueo no se levanta a mano y se levanta al cerrar el incidente. |
 | Panel | Compilación | Páginas Ocupación (totales, plazas por bloque, resumen del período) e Incidentes (registro, validación, descarte y cierre). `tsc` y `vite build` pasan. No se recorrió en navegador. |
+
+### 06 · Evidencia
+
+Rama `tramo/06-avisos`. Pruebas en `apps/api/test/avisos.test.js` contra PostgreSQL real con un transporte push de prueba y el correo en memoria. `Aviso` funciona como bandeja de salida con `claveDeduplicacion` única; `CanalAviso` guarda los tokens de Expo Push. Canal local de prueba: Mailpit.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Registrar el resultado antes de enviar, con fecha, horario y plaza | Verificado (API) | La confirmación se crea en la misma transacción que la reserva («lunes, 16 de noviembre, 09:00–12:00, plaza A1 en …»); un cambio que falla no deja avisos. Cancelación, cambio y lista de espera generan su aviso en la transacción de su operación. |
+| Confirmación, cancelación, cambio y falta de disponibilidad según el resultado real | Verificado (API) | Secuencia confirmación → cambio → cancelación → sin cupo; repetir la cancelación o reintentar la solicitud sin cupo con la misma clave no duplica avisos. Probado también contra la API local: confirmación y cancelación llegaron a Mailpit. |
+| Recordatorios al terminar la última clase y a la salida; uno si coinciden | Verificado (API) | Con clase hasta las 11:30 y salida a las 12:00 hay dos; con clase hasta las 12:00, uno. Sin clases, solo el de la salida declarada. |
+| Cancelar recordatorios al cancelar o hacer check-out | Verificado (API) | Al cancelar, cambiar, registrar la salida o quedar ausente, los pendientes pasan a `cancelado`; a la hora programada no se envían. Al enviar se comprueba además que la reserva siga activa. |
+| Fallas y reintentos no cambian ni duplican la reserva | Verificado (API) | Push fallido → correo. Correo caído → tres intentos con espera creciente y luego `fallido`, sin tocar la reserva ni duplicar el aviso. Dos procesos simultáneos entregan cada aviso una vez. Un token `DeviceNotRegistered` se desactiva. |
+| Consultar el estado si la entrega falla | Verificado (API) · Compilación (app) | `GET /avisos` muestra cada aviso con su estado de entrega y los recordatorios programados. App: Cuenta → Avisos y registro del dispositivo con `expo-notifications`; al tocar una notificación abre Mi reserva. `tsc` y `expo export` pasan. |
+
+**Pendiente para piloto** · Las notificaciones remotas requieren una compilación con proyecto EAS (`extra.eas.projectId`); en Expo Go los avisos llegan por correo y a la bandeja. Confirmar proveedores y probar la entrega en un dispositivo del piloto antes de dar por verificado el canal.

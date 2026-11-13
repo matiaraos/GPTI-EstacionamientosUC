@@ -4,6 +4,7 @@ import type { RuntimeConfig } from "./config.js";
 import { crearMailer, type Mailer } from "./lib/correo.js";
 import { errorHandler, notFoundHandler } from "./lib/errors.js";
 import type { Database } from "./lib/prisma.js";
+import { crearRutasAvisos } from "./modules/avisos/rutas.js";
 import { crearRutasCatalogo } from "./modules/catalogo/rutas.js";
 import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
 import { crearRutasHorario } from "./modules/horario/rutas.js";
@@ -52,6 +53,7 @@ export function createApp(deps: AppDeps) {
   });
 
   app.use(crearRutasCuentas({ db, clock, auth: config.auth, mailer, ranking: config.ranking }));
+  app.use(crearRutasAvisos({ db, clock }));
   app.use(crearRutasCatalogo({ db, clock }));
   app.use(crearRutasVisitas({ db, clock }));
   app.use(crearRutasInventario({ db, clock, reservas: config.reservas, ranking: config.ranking }));

@@ -2,7 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import { createContext, use, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { setUnauthorizedHandler } from "@/api/client";
+import { olvidarDispositivo } from "@/api/avisos";
 import { cerrarSesion } from "@/api/cuentas";
+import { tokenPushActual } from "@/avisos/notificaciones";
 
 const TOKEN_KEY = "miestacionamientouc.sesion";
 
@@ -48,6 +50,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     if (token) {
+      // Este dispositivo deja de recibir los avisos de la cuenta.
+      const push = tokenPushActual();
+      if (push) await olvidarDispositivo(token, push).catch(() => undefined);
       await cerrarSesion(token).catch(() => undefined);
     }
     await forget();
