@@ -21,6 +21,7 @@ model Zona {
   plazas    Plaza[]
   horarios  HorarioZona[]
   cercanias CercaniaBloque[]
+  series    SerieReserva[]
 }
 
 /// Perímetro del campus, usado para validar la llegada (05A).
@@ -51,6 +52,7 @@ model Destino {
   esperas          SolicitudEspera[] @relation("EsperaDestino")
   esperasDesempate SolicitudEspera[] @relation("EsperaDesempate")
   actividadesUC    ActividadUC[]
+  bloquesSerie     BloqueSerie[]
 
   @@index([nombre])
 }
@@ -278,6 +280,7 @@ model Cuenta {
   solicitudEsperas        SolicitudEspera[]
   conexionUC              ConexionUC?
   canalesAviso            CanalAviso[]
+  series                  SerieReserva[]
   avisos                  Aviso[]
   incidentesReportados    Incidente[]              @relation("IncidentesReportados")
   incidentesResueltos     Incidente[]              @relation("IncidentesResueltos")
@@ -292,6 +295,7 @@ model Vehiculo {
   creadoEn         DateTime          @default(now()) @db.Timestamptz(3)
   reservas         Reserva[]
   solicitudEsperas SolicitudEspera[]
+  series           SerieReserva[]
 
   @@index([cuentaId])
 }
@@ -372,8 +376,13 @@ model Reserva {
   ajustes            AjusteRanking[]
   incidentes         Incidente[]
   avisos             Aviso[]
+  /// Ocurrencia de una serie semanal; el par (bloque, fecha) es único y se conserva aunque se cancele.
+  bloqueSerieId      Int?
+  bloqueSerie        BloqueSerie?     @relation(fields: [bloqueSerieId], references: [id], onDelete: Restrict)
+  fechaOcurrencia    DateTime?        @db.Date
 
   @@unique([cuentaId, claveIdempotencia])
+  @@unique([bloqueSerieId, fechaOcurrencia])
   @@index([destinoDesempateId])
   @@index([cuentaId, inicio])
   @@index([plazaId, inicio])
@@ -430,6 +439,7 @@ enum TipoAjuste {
   salida_tardia
   rectificacion
   incidente
+  revocacion_recurrente
 }
 
 /// `pendiente` hasta que administración lo revise. `validado`: el hecho se confirmó (puede sancionar y
@@ -556,6 +566,53 @@ model Aviso {
   @@index([estado, programadoEn])
   @@index([cuentaId, creadoEn])
   @@index([reservaId])
+}
+
+enum EstadoSerie {
+  activa
+  revocada
+  cancelada
+}
+
+/// Serie semanal de reservas (RF-22, SC-001). Sus ocurrencias son reservas normales en la zona de la
+/// serie, generadas una semana a la vez: al crearla y en la renovación del fin de semana si la semana
+/// se cumplió. Una ausencia la revoca.
+model SerieReserva {
+  id                Int           @id @default(autoincrement())
+  cuentaId          Int
+  cuenta            Cuenta        @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  vehiculoId        Int
+  vehiculo          Vehiculo      @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
+  zonaId            Int
+  zona              Zona          @relation(fields: [zonaId], references: [id], onDelete: Restrict)
+  estado            EstadoSerie   @default(activa)
+  claveIdempotencia String
+  creadaEn          DateTime      @db.Timestamptz(3)
+  /// Lunes de la última semana con ocurrencias generadas.
+  semanaHasta       DateTime      @db.Date
+  cerradaEn         DateTime?     @db.Timestamptz(3)
+  motivoCierre      String?
+  bloques           BloqueSerie[]
+
+  @@unique([cuentaId, claveIdempotencia])
+  @@index([zonaId, estado])
+  @@index([vehiculoId])
+}
+
+/// Bloque semanal de una serie: día, llegada y salida en hora de Santiago, y destino.
+model BloqueSerie {
+  id           Int          @id @default(autoincrement())
+  serieId      Int
+  serie        SerieReserva @relation(fields: [serieId], references: [id], onDelete: Cascade)
+  destinoId    Int
+  destino      Destino      @relation(fields: [destinoId], references: [id], onDelete: Restrict)
+  diaSemana    Int
+  inicioMinuto Int
+  finMinuto    Int
+  reservas     Reserva[]
+
+  @@index([serieId])
+  @@index([destinoId])
 }
 
 enum TipoEvento {

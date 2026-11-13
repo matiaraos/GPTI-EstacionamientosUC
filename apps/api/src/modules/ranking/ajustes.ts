@@ -5,7 +5,7 @@ import type { Database } from "../../lib/prisma.js";
 type Cliente = Database | Prisma.TransactionClient;
 
 /** Ajustes automáticos de una reserva. Las rectificaciones e incidentes los registra administración. */
-type TipoAutomatico = Exclude<TipoAjuste, "rectificacion" | "incidente">;
+type TipoAutomatico = Exclude<TipoAjuste, "rectificacion" | "incidente" | "revocacion_recurrente">;
 
 export const MOTIVOS: Record<TipoAutomatico, string> = {
   ausencia: "No registraste la llegada dentro de la ventana de la reserva.",

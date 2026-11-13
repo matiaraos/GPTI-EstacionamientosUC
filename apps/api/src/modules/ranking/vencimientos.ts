@@ -2,6 +2,7 @@ import type { ReservasConfig, RankingConfig } from "../../config.js";
 import type { Database } from "../../lib/prisma.js";
 import { atenderEsperas } from "../reservas/espera.js";
 import { cancelarRecordatorios } from "../avisos/registro.js";
+import { revocarSerie } from "../recurrencia/series.js";
 import { ajustarPorReserva } from "./ajustes.js";
 
 export type ResultadoVencimientos = { ausentes: number[]; vencidas: number[] };
@@ -28,7 +29,7 @@ export async function procesarVencimientos(
         { estado: "en_uso", fin: { lt: limiteSalida } },
       ],
     },
-    select: { id: true, cuentaId: true, estado: true },
+    select: { id: true, cuentaId: true, estado: true, bloqueSerie: { select: { serieId: true } } },
     orderBy: { id: "asc" },
     take: 500,
   });
@@ -45,7 +46,11 @@ export async function procesarVencimientos(
       });
       if (count === 0) return false;
       await cancelarRecordatorios(tx, reserva.id, ahora);
-      await ajustarPorReserva(tx, ranking, reserva, ausencia ? "ausencia" : "vencimiento", ahora);
+      await ajustarPorReserva(tx, ranking, { id: reserva.id, cuentaId: reserva.cuentaId }, ausencia ? "ausencia" : "vencimiento", ahora);
+      // SC-001: la primera ausencia en una reserva semanal revoca el beneficio y libera sus próximas fechas.
+      if (ausencia && reserva.bloqueSerie) {
+        await revocarSerie(tx, reserva.bloqueSerie.serieId, ahora, "No registraste la llegada a tiempo en una fecha de tu reserva semanal.", ranking);
+      }
       return true;
     });
     if (cambiada) (ausencia ? resultado.ausentes : resultado.vencidas).push(reserva.id);
