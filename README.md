@@ -18,7 +18,7 @@ Consulta el [alcance y las decisiones técnicas](docs/alcance.md) y el [índice 
 Necesitas:
 
 - **Node.js 22** (mínimo 22.12) y npm. Con nvm, `nvm use` toma la versión de `.nvmrc`. [Ciclo de soporte de Node.js](https://nodejs.org/en/about/previous-releases)
-- **Docker** con Docker Compose, para PostgreSQL y el correo de prueba. En Windows, usa Docker Desktop con la integración de WSL activada.
+- **Docker** con Docker Compose, para PostgreSQL y el correo de prueba.
 - Para la app, **una** de estas opciones (ver [Probar la app móvil](#probar-la-app-móvil)): un teléfono Android o iPhone con Expo Go, el emulador de Android Studio o un Mac con Xcode. Expo SDK 55 funciona desde Android 10 e iOS 15.1. [Compatibilidad de Expo SDK 55](https://docs.expo.dev/versions/v55.0.0/#support-for-android-and-ios-versions)
 
 Desde la raíz del repo:
@@ -72,7 +72,7 @@ La app necesita llegar a dos puertos del computador: **8081** (Metro, que entreg
 
 | Opción | Cuándo conviene | `EXPO_PUBLIC_API_URL` |
 | --- | --- | --- |
-| A. Teléfono Android por USB | La más confiable, también con WSL. | `http://localhost:3000` |
+| A. Teléfono Android por USB | La más confiable: no depende de la red. | `http://localhost:3000` |
 | B. Teléfono por Wi‑Fi | Android o iPhone sin cable, en la misma red. | `http://<IP-del-computador>:3000` |
 | C. Emulador de Android Studio | Sin teléfono. | `http://10.0.2.2:3000` |
 | D. Compilación de desarrollo | Notificaciones push y enlaces `miestacionamientouc://`. | Según dónde corra |
@@ -83,7 +83,7 @@ Expo Go se instala desde Google Play o la App Store y debe ser compatible con **
 
 1. En el teléfono, activa **Opciones de desarrollador** (toca siete veces *Número de compilación*) y luego **Depuración USB**.
 2. Conecta el cable y acepta el aviso de depuración en el teléfono.
-3. Redirige los puertos del teléfono al computador. Necesitas `adb` (viene con Android Studio en `platform-tools` o en las [Platform Tools](https://developer.android.com/tools/releases/platform-tools)). En Windows con WSL, ejecuta `adb` desde PowerShell, no desde WSL.
+3. Redirige los puertos del teléfono al computador. Necesitas `adb`, que viene con Android Studio (`platform-tools`) o con las [Platform Tools](https://developer.android.com/tools/releases/platform-tools).
 
    ```bash
    adb devices
@@ -108,25 +108,18 @@ Expo Go se instala desde Google Play o la App Store y debe ser compatible con **
 2. Averigua la IP del computador en esa red (`ipconfig` en Windows, `ipconfig getifaddr en0` en macOS, `hostname -I` en Linux) y escríbela en `EXPO_PUBLIC_API_URL=http://<IP>:3000`.
 3. Inicia `npm run dev:mobile:go` y escanea el QR de la terminal: con la cámara en iPhone o desde Expo Go en Android.
 
-**Con WSL en Windows**, el teléfono no llega a los puertos de WSL. Hay dos soluciones:
+Si el teléfono no carga la app:
 
-- **Red en espejo** (Windows 11 22H2 o posterior): crea `%UserProfile%\.wslconfig` con estas líneas, ejecuta `wsl --shutdown` y abre WSL de nuevo. Luego permite los puertos 3000 y 8081 en el Firewall de Windows.
-
-  ```ini
-  [wsl2]
-  networkingMode=mirrored
-  ```
-
-- **Túnel de Expo** para Metro (`npx expo start --go --tunnel` desde `apps/mobile`; la primera vez instala `@expo/ngrok`). El túnel no cubre la API: combínalo con la red en espejo o con la opción A.
-
-Si la app no carga, define `REACT_NATIVE_PACKAGER_HOSTNAME=<IP>` antes de iniciar Metro para que el QR use la IP correcta.
+- Revisa que el firewall del computador permita conexiones entrantes a los puertos 3000 y 8081.
+- Si el computador tiene varias interfaces de red (VPN, máquinas virtuales, contenedores), Metro puede anunciar una IP equivocada. Define `REACT_NATIVE_PACKAGER_HOSTNAME=<IP>` antes de iniciarlo.
+- Si la red no permite la conexión directa, usa el túnel de Expo (`npx expo start --go --tunnel` desde `apps/mobile`; la primera vez instala `@expo/ngrok`). El túnel solo cubre Metro: la API debe seguir siendo alcanzable, así que en ese caso conviene la opción A.
 
 ### C. Emulador de Android Studio
 
-1. Instala [Android Studio](https://developer.android.com/studio). En Windows, activa **Plataforma del hipervisor de Windows** en *Características de Windows*; sin ella el emulador no arranca.
+1. Instala [Android Studio](https://developer.android.com/studio). El emulador necesita la virtualización por hardware activa (en la BIOS y, en Windows, la *Plataforma del hipervisor de Windows*).
 2. En **Device Manager**, crea un dispositivo (por ejemplo, Pixel 8 con Android 15, imagen *Google Play*) y ábrelo.
 3. Instala Expo Go en el emulador desde Google Play.
-4. Usa `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`: `10.0.2.2` es el computador visto desde el emulador. Con WSL también sirve, porque Windows reenvía `localhost` a WSL.
+4. Usa `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`: `10.0.2.2` es el computador visto desde el emulador.
 5. Inicia `npm run dev:mobile:go` y, en Expo Go, entra a `exp://10.0.2.2:8081`. Si `adb` está disponible, también puedes pulsar `a` en la terminal de Metro.
 
 Para registrar la llegada sin estar en el campus, fija la ubicación del emulador en *Extended controls → Location* dentro del campus (por ejemplo, `-33.4975, -70.6153`) o usa `PERIMETRO_PRUEBA` (ver la [guía de prueba](#guía-de-prueba)). La cámara del emulador puede mostrar una escena virtual o la cámara web; si no lee el QR, escribe su contenido en el campo bajo el visor.
@@ -135,7 +128,7 @@ Para registrar la llegada sin estar en el campus, fija la ubicación del emulado
 
 Es la app nativa propia, con `expo-dev-client`. Es necesaria para las notificaciones push y para que el enlace `miestacionamientouc://` abra la app.
 
-- **Local**: desde `apps/mobile`, `npx expo run:android` (requiere el SDK de Android en el mismo sistema que ejecuta el comando; con WSL, ejecútalo desde Windows o macOS) o `npx expo run:ios` (macOS con Xcode). Luego inicia Metro con `npm run dev:mobile` y abre la app instalada. [Compilaciones de desarrollo](https://docs.expo.dev/develop/development-builds/introduction/)
+- **Local**: desde `apps/mobile`, `npx expo run:android` (requiere el SDK de Android de Android Studio y un teléfono o emulador conectado) o `npx expo run:ios` (macOS con Xcode). Luego inicia Metro con `npm run dev:mobile` y abre la app instalada. [Compilaciones de desarrollo](https://docs.expo.dev/develop/development-builds/introduction/)
 - **En la nube**: con una cuenta Expo y [EAS Build](https://docs.expo.dev/develop/development-builds/create-a-build/), genera una compilación de desarrollo para Android o iPhone sin instalar Android Studio ni Xcode. Para las notificaciones push, el proyecto EAS agrega `extra.eas.projectId` en `app.json`.
 
 ### iPhone
@@ -171,7 +164,7 @@ Los datos simulados aparecen en el panel con el modo *Simulación* y no acredita
 | «Tu ubicación está fuera del campus» | Usa `PERIMETRO_PRUEBA` o fija la ubicación del emulador. |
 | «Aún es temprano» o «Tu ventana de llegada terminó» | El check-in es ±15 minutos de la llegada reservada. |
 | No llegan notificaciones | En Expo Go no hay notificaciones push: los avisos están en Mailpit y en *Cuenta → Avisos*. |
-| El emulador no arranca en Windows | Activa *Plataforma del hipervisor de Windows* y la virtualización en la BIOS. |
+| El emulador no arranca | Activa la virtualización por hardware (BIOS y, en Windows, la *Plataforma del hipervisor*). |
 
 ## Desarrollo
 
