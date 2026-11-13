@@ -265,6 +265,8 @@ model Cuenta {
   correo                  String                   @unique
   hashContrasena          String
   rol                     Rol                      @default(usuario)
+  /// Cuenta creada por la simulación del piloto: sus datos no acreditan las metas reales (08B).
+  simulada                Boolean                  @default(false)
   activa                  Boolean                  @default(true)
   creadaEn                DateTime                 @default(now()) @db.Timestamptz(3)
   vehiculos               Vehiculo[]
@@ -281,6 +283,7 @@ model Cuenta {
   conexionUC              ConexionUC?
   canalesAviso            CanalAviso[]
   series                  SerieReserva[]
+  medicionesRegistradas   MedicionDisponibilidad[]
   avisos                  Aviso[]
   incidentesReportados    Incidente[]              @relation("IncidentesReportados")
   incidentesResueltos     Incidente[]              @relation("IncidentesResueltos")
@@ -341,45 +344,47 @@ enum EstadoReserva {
 /// Reserva de una plaza para el intervalo `[inicio, fin)`. Las restricciones de exclusión de la
 /// migración impiden que dos reservas que ocupan capacidad se solapen en la misma plaza, cuenta o vehículo.
 model Reserva {
-  id                 Int              @id @default(autoincrement())
+  id                 Int                   @id @default(autoincrement())
   cuentaId           Int
-  cuenta             Cuenta           @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
+  cuenta             Cuenta                @relation(fields: [cuentaId], references: [id], onDelete: Restrict)
   vehiculoId         Int
-  vehiculo           Vehiculo         @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
+  vehiculo           Vehiculo              @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
   plazaId            Int
-  plaza              Plaza            @relation(fields: [plazaId], references: [id], onDelete: Restrict)
+  plaza              Plaza                 @relation(fields: [plazaId], references: [id], onDelete: Restrict)
   destinoId          Int
-  destino            Destino          @relation(fields: [destinoId], references: [id], onDelete: Restrict)
-  inicio             DateTime         @db.Timestamptz(3)
-  fin                DateTime         @db.Timestamptz(3)
-  estado             EstadoReserva    @default(confirmada)
+  destino            Destino               @relation(fields: [destinoId], references: [id], onDelete: Restrict)
+  inicio             DateTime              @db.Timestamptz(3)
+  fin                DateTime              @db.Timestamptz(3)
+  estado             EstadoReserva         @default(confirmada)
   /// Clave enviada por el cliente para reconocer reintentos de la misma solicitud.
   claveIdempotencia  String
   /// Distancia del bloque asignado al destino al momento de reservar.
   metros             Int
   metodoDistancia    MetodoDistancia
-  creadaEn           DateTime         @default(now()) @db.Timestamptz(3)
-  canceladaEn        DateTime?        @db.Timestamptz(3)
+  creadaEn           DateTime              @default(now()) @db.Timestamptz(3)
+  canceladaEn        DateTime?             @db.Timestamptz(3)
   /// Momento en que el proceso de vencimientos la marcó `ausente` o `vencida`.
-  vencidaEn          DateTime?        @db.Timestamptz(3)
+  vencidaEn          DateTime?             @db.Timestamptz(3)
   /// Si el destino salió del horario académico (primera clase de la visita) o fue declarado.
-  origenDestino      OrigenDestino    @default(declarado)
+  origenDestino      OrigenDestino         @default(declarado)
   /// Destino de la última clase, usado para desempatar bloques (04B).
   destinoDesempateId Int?
-  destinoDesempate   Destino?         @relation("DestinoDesempate", fields: [destinoDesempateId], references: [id], onDelete: Restrict)
+  destinoDesempate   Destino?              @relation("DestinoDesempate", fields: [destinoDesempateId], references: [id], onDelete: Restrict)
   /// Reserva original que esta reemplazó al aceptar un cambio. La original queda cancelada.
-  reemplazaId        Int?             @unique
-  reemplaza          Reserva?         @relation("Cambio", fields: [reemplazaId], references: [id], onDelete: NoAction)
-  reemplazadaPor     Reserva?         @relation("Cambio")
+  reemplazaId        Int?                  @unique
+  reemplaza          Reserva?              @relation("Cambio", fields: [reemplazaId], references: [id], onDelete: NoAction)
+  reemplazadaPor     Reserva?              @relation("Cambio")
   solicitudEspera    SolicitudEspera?
   eventos            EventoReserva[]
   ajustes            AjusteRanking[]
   incidentes         Incidente[]
   avisos             Aviso[]
+  lecturas           LecturaQR[]
+  encuesta           EncuestaSatisfaccion?
   /// Ocurrencia de una serie semanal; el par (bloque, fecha) es único y se conserva aunque se cancele.
   bloqueSerieId      Int?
-  bloqueSerie        BloqueSerie?     @relation(fields: [bloqueSerieId], references: [id], onDelete: Restrict)
-  fechaOcurrencia    DateTime?        @db.Date
+  bloqueSerie        BloqueSerie?          @relation(fields: [bloqueSerieId], references: [id], onDelete: Restrict)
+  fechaOcurrencia    DateTime?             @db.Date
 
   @@unique([cuentaId, claveIdempotencia])
   @@unique([bloqueSerieId, fechaOcurrencia])
@@ -613,6 +618,60 @@ model BloqueSerie {
 
   @@index([serieId])
   @@index([destinoId])
+}
+
+/// Intento de lectura de QR (entrada o salida) para medir lecturas al primer intento (PP-15). No guarda
+/// coordenadas ni el contenido del QR.
+model LecturaQR {
+  id           Int        @id @default(autoincrement())
+  reservaId    Int
+  reserva      Reserva    @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  tipo         TipoEvento
+  /// `ok` o el código del error (`qr_ilegible`, `qr_otra_plaza`, `fuera_de_zona`…).
+  resultado    String
+  registradoEn DateTime   @db.Timestamptz(3)
+
+  @@index([reservaId, tipo, registradoEn])
+}
+
+/// Respuesta de satisfacción tras registrar la salida (1 a 5). Una por reserva.
+model EncuestaSatisfaccion {
+  id         Int      @id @default(autoincrement())
+  reservaId  Int      @unique
+  reserva    Reserva  @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  puntaje    Int
+  comentario String?
+  creadaEn   DateTime @db.Timestamptz(3)
+}
+
+/// Disponibilidad medida fuera de la API (por ejemplo, UptimeRobot sobre `/ready`) para un período.
+model MedicionDisponibilidad {
+  id              Int      @id @default(autoincrement())
+  desde           DateTime @db.Date
+  hasta           DateTime @db.Date
+  porcentaje      Float
+  fuente          String
+  simulada        Boolean  @default(false)
+  registradaEn    DateTime @db.Timestamptz(3)
+  registradaPorId Int?
+  registradaPor   Cuenta?  @relation(fields: [registradaPorId], references: [id], onDelete: SetNull)
+
+  @@index([desde, hasta])
+  @@index([registradaPorId])
+}
+
+/// Resultado agregado y anónimo de un período del piloto. Es lo único que se conserva al cierre.
+model ResultadoPiloto {
+  id          Int      @id @default(autoincrement())
+  desde       DateTime @db.Date
+  hasta       DateTime @db.Date
+  /// `real` o `simulacion`. Una simulación no acredita las metas del piloto.
+  modo        String
+  generadoEn  DateTime @db.Timestamptz(3)
+  /// Indicadores con valor, numerador, denominador, meta y cumplimiento.
+  indicadores Json
+
+  @@index([desde, hasta])
 }
 
 enum TipoEvento {

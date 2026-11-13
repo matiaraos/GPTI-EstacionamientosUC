@@ -201,11 +201,27 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
     response.json({ reserva: reservaPublica(reserva) });
   });
 
+  // Errores de lectura que cuentan como intento fallido para PP-15 (no se guarda el contenido ni la ubicación).
+  const FALLAS_LECTURA = new Set(["qr_ilegible", "qr_desconocido", "qr_revocado", "qr_otra_plaza", "fuera_de_zona", "fuera_de_ventana"]);
+  async function conLectura<T extends { repetido: boolean }>(reservaId: number, cuentaId: number, tipo: "entrada" | "salida", operacion: () => Promise<T>) {
+    try {
+      const resultado = await operacion();
+      if (!resultado.repetido) await db.lecturaQR.create({ data: { reservaId, tipo, resultado: "ok", registradoEn: clock() } });
+      return resultado;
+    } catch (error) {
+      if (error instanceof HttpError && FALLAS_LECTURA.has(error.code) && (await db.reserva.count({ where: { id: reservaId, cuentaId } }))) {
+        await db.lecturaQR.create({ data: { reservaId, tipo, resultado: error.code, registradoEn: clock() } });
+      }
+      throw error;
+    }
+  }
+
   /** Check-in con el QR de la plaza y la ubicación actual. Repetirlo devuelve el mismo evento (200). */
   router.post("/reservas/:id/entrada", async (request, response) => {
     const { id } = parseInput(idSchema, request.params);
     const datos = parseInput(entradaSchema, request.body);
-    const resultado = await registrarEntrada(db, clock, config, { cuentaId: sesionDe(response).cuentaId, reservaId: id, ...datos });
+    const { cuentaId } = sesionDe(response);
+    const resultado = await conLectura(id, cuentaId, "entrada", () => registrarEntrada(db, clock, config, { cuentaId, reservaId: id, ...datos }));
     response.status(resultado.repetido ? 200 : 201).json(respuestaUso(resultado));
   });
 
@@ -213,7 +229,8 @@ export function crearRutasReservas({ db, clock, config, ranking }: Deps) {
   router.post("/reservas/:id/salida", async (request, response) => {
     const { id } = parseInput(idSchema, request.params);
     const datos = parseInput(salidaSchema, request.body);
-    const resultado = await registrarSalida(db, clock, config, ranking, { cuentaId: sesionDe(response).cuentaId, reservaId: id, ...datos });
+    const { cuentaId } = sesionDe(response);
+    const resultado = await conLectura(id, cuentaId, "salida", () => registrarSalida(db, clock, config, ranking, { cuentaId, reservaId: id, ...datos }));
     if (!resultado.repetido) await atender();
     response.status(resultado.repetido ? 200 : 201).json(respuestaUso(resultado));
   });

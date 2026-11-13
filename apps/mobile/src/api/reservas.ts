@@ -103,3 +103,8 @@ export function misEsperas(token: string) {
 export function cancelarEspera(token: string, id: number) {
   return apiRequest<{ espera: Espera }>(`/esperas/${id}/cancelar`, { method: "POST", token });
 }
+
+/** Satisfacción con la reserva (1 a 5), después de registrar la salida. */
+export function responderEncuesta(token: string, reservaId: number, puntaje: number) {
+  return apiRequest<{ mensaje: string }>("/encuestas", { method: "POST", body: { reservaId, puntaje }, token });
+}

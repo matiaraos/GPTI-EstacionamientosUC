@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/empty-state";
 import { FormScreen } from "@/components/form-screen";
 import { Icon } from "@/components/icon";
 import { Notice } from "@/components/notice";
+import { Encuesta } from "@/components/encuesta";
 import { PlazaBanner } from "@/components/plaza-banner";
 import { TextField } from "@/components/text-field";
 import { ThemedText } from "@/components/themed-text";
@@ -109,6 +110,7 @@ export default function EscanearScreen() {
           }
           action={<Button title="Listo" onPress={() => router.back()} />}
         />
+        {esEntrada ? null : <Encuesta reservaId={reserva.id} />}
       </FormScreen>
     );
   }

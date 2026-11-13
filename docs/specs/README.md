@@ -17,7 +17,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Verificada · [evidencia](#08a--evidencia) |
 | Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | En curso · [evidencia](#06--evidencia) |
 | Piloto | [07](07-recurrencia.md#07--reservas-recurrentes) | Recurrencia semanal | RF-22 | 06 | En curso · [evidencia](#07--evidencia) |
-| Piloto | [08B](08-operacion.md#08b--indicadores-y-cierre-del-piloto) | Indicadores y cierre | RF-21 y RNF del piloto | 01B, 07, 08A | Pendiente |
+| Piloto | [08B](08-operacion.md#08b--indicadores-y-cierre-del-piloto) | Indicadores y cierre | RF-21 y RNF del piloto | 01B, 07, 08A | En curso · [evidencia](#08b--evidencia) |
 
 02A y 03A pueden avanzar en paralelo. Para desarrollar 03A, usar un catálogo de prueba con el contrato compartido en la spec 02. Integrar el catálogo geográfico de San Joaquín con plazas de prueba al cerrar 04A. La asignación ordena los bloques por su cercanía al destino. 01B, 02B, 03B y 05B se pueden tomar por separado al cumplir sus dependencias. La demo usa solo plazas regulares.
 
@@ -231,3 +231,18 @@ Rama `tramo/07-recurrencia`. Pruebas en `apps/api/test/recurrencia.test.js` cont
 | App | Compilación | Reservar → Reservas semanales: requisitos (puntaje, bloques, cupo de la zona), series con sus fechas, cancelar una fecha o la serie, y nueva serie con días, horario y destino (o el de las clases). `tsc` y `expo export` pasan. **Pendiente**: recorrer en el teléfono. |
 
 **Pendiente para piloto** · Confirmar el umbral de elegibilidad, los límites de bloques por persona, la zona piloto y la penalización con los escenarios PP-29–34.
+
+### 08B · Evidencia
+
+Rama `tramo/08b-indicadores`. Pruebas en `apps/api/test/piloto.test.js` contra PostgreSQL real. Nuevas fuentes: `LecturaQR` (cada intento de lectura, sin contenido ni ubicación), `EncuestaSatisfaccion` (1 a 5 tras la salida), `MedicionDisponibilidad` (monitoreo externo) y `ResultadoPiloto` (agregados anónimos). `Cuenta.simulada` separa la simulación de la medición real.
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Reporte agregado con período y denominadores | Verificado (API) | `GET /admin/indicadores` entrega por período y modo: participantes (personas con reserva / cuentas registradas), asignaciones con horario, satisfacción (respuestas 4–5 / respuestas), disponibilidad (promedio de mediciones), errores de asignación (incidentes validados / reservas), dobles reservas (pares con uso superpuesto) y PP-15 aparte. En el escenario de prueba: 2/2, 1/2, 1/2, 99,5 %, 1/2, 0 y 1/2. |
+| Cero dobles reservas | Verificado (API) | El indicador detecta un par de usos superpuestos en la misma plaza insertado a propósito; con el flujo normal es 0, también en la simulación. |
+| Simulación identificada que no acredita las metas | Verificado (API) | `simularPiloto` usa los servicios reales con cuentas `simulada` y un reloj propio; su reporte dice que no acredita y la medición real del mismo período no cambia. `npm run piloto:simular` con 60 cuentas y 5 días: 35 participantes, 84,1 % con horario, 86,5 % de satisfacción, 0 dobles y 95,9 % de QR al primer intento. |
+| PP-15 medido por separado | Verificado (API) | La primera lectura de entrada de cada reserva (`ok` o el código del error) define el indicador; un QR de otra plaza seguido del correcto cuenta como segundo intento. |
+| Cierre de datos verificado con registros ficticios | Verificado (API) | `cerrarPiloto` guarda los indicadores de todo el período (real y simulación) y elimina cuentas de usuario, patentes, sesiones, horarios, reservas, eventos, lecturas, encuestas, avisos e incidentes. Conserva catálogo, inventario y cuentas de administración; los resultados guardados no contienen correos, patentes ni comentarios. `npm run piloto:cerrar` exige `--confirmar`. |
+| Panel y app | Compilación | Panel: Indicadores (período, real o simulación, metas con numerador y denominador, disponibilidad medida, resultados guardados). App: encuesta de 1 a 5 al registrar la salida. `tsc`, `vite build` y `expo export` pasan. |
+
+**Pendiente para piloto** · Verificar el flujo en Android e iOS y medir con usuarios reales: las metas (≥ 50 participantes, ≥ 90 % con horario, ≥ 80 % de satisfacción, > 95 % de disponibilidad, < 5 % de errores y 0 dobles reservas) solo se acreditan con la medición real. Confirmar zona, señalética, período de monitoreo, reclutamiento y responsable de la evidencia. Ejecutar el cierre al terminar el piloto.

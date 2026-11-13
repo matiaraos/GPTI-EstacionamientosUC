@@ -10,6 +10,7 @@ import { CuentasPage } from "./pages/cuentas";
 import { DestinosPage } from "./pages/destinos";
 import { DiagnosticoPage } from "./pages/diagnostico";
 import { IncidentesPage } from "./pages/incidentes";
+import { IndicadoresPage } from "./pages/indicadores";
 import { InventarioPage } from "./pages/inventario";
 import { OcupacionPage } from "./pages/ocupacion";
 import { AdminLayout } from "./pages/layout";
@@ -37,6 +38,7 @@ createRoot(document.getElementById("root")!).render(
               <Route index element={<CuentasPage />} />
               <Route path="ocupacion" element={<OcupacionPage />} />
               <Route path="incidentes" element={<IncidentesPage />} />
+              <Route path="indicadores" element={<IndicadoresPage />} />
               <Route path="inventario" element={<InventarioPage />} />
               <Route path="bloqueos" element={<BloqueosPage />} />
               <Route path="destinos" element={<DestinosPage />} />
