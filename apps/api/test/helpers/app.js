@@ -11,7 +11,8 @@ export const testConfig = {
     recuperacionUrl: "miestacionamientouc://restablecer",
   },
   reservas: { toleranciaLlegadaMin: 15, toleranciaSalidaMin: 10, perimetroPrueba: null, margenPerimetroM: 50, simultaneidadMs: 0 },
-  ranking: { puntajeInicial: 100, ausencia: -10, vencimiento: -5, salidaTardia: -3, salidaATiempo: 1 },
+  ranking: { puntajeInicial: 100, ausencia: -10, vencimiento: -5, salidaTardia: -3, salidaATiempo: 1, revocacionRecurrente: -10 },
+  recurrencia: { zonaPiloto: "PARKING-2", topePct: 30, umbralPuntaje: 100, maxBloques: 5 },
 };
 
 /** Reloj controlable: `clock.set(fecha)` y `clock.advance(ms)`. */

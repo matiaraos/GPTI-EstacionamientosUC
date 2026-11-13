@@ -20,6 +20,11 @@ const configSchema = z.object({
   RANKING_AUSENCIA: z.coerce.number().int().max(0).default(-10),
   RANKING_VENCIMIENTO: z.coerce.number().int().max(0).default(-5),
   RANKING_SALIDA_TARDIA: z.coerce.number().int().max(0).default(-3),
+  RANKING_REVOCACION_RECURRENTE: z.coerce.number().int().max(0).default(-10),
+  RECURRENCIA_ZONA: z.string().optional(),
+  RECURRENCIA_TOPE_PCT: z.coerce.number().min(0).max(100).default(30),
+  RECURRENCIA_UMBRAL: z.coerce.number().int().default(100),
+  RECURRENCIA_MAX_BLOQUES: z.coerce.number().int().min(1).max(14).default(5),
   RANKING_SALIDA_A_TIEMPO: z.coerce.number().int().min(0).default(1),
   AVISOS_INTERVALO_S: z.coerce.number().int().min(0).default(30),
   EXPO_ACCESS_TOKEN: z.string().optional(),
@@ -64,6 +69,20 @@ export type RankingConfig = {
   vencimiento: number;
   salidaTardia: number;
   salidaATiempo: number;
+  /** Penalización adicional al revocar una serie recurrente por ausencia o salida vencida (SC-001). */
+  revocacionRecurrente: number;
+};
+
+/** Reservas recurrentes (07, SC-001). Valores propuestos, pendientes de confirmar para el piloto. */
+export type RecurrenciaConfig = {
+  /** ID de origen del bloque de la zona piloto. Sin valor, se usa el bloque más cercano al primer destino. */
+  zonaPiloto: string | null;
+  /** Porcentaje máximo de las plazas activas de la zona destinadas a series. */
+  topePct: number;
+  /** Puntaje mínimo para crear una serie. */
+  umbralPuntaje: number;
+  /** Bloques semanales por persona. */
+  maxBloques: number;
 };
 
 export type AppConfig = {
@@ -73,6 +92,7 @@ export type AppConfig = {
   auth: AuthConfig;
   reservas: ReservasConfig;
   ranking: RankingConfig;
+  recurrencia: RecurrenciaConfig;
   /** Cada cuántos segundos se procesan ausencias y vencimientos (0 = desactivado). */
   vencimientosIntervaloS: number;
   /** Envío de avisos (06): intervalo en segundos (0 = desactivado) y token opcional de Expo Push. */
@@ -141,6 +161,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       vencimiento: values.RANKING_VENCIMIENTO,
       salidaTardia: values.RANKING_SALIDA_TARDIA,
       salidaATiempo: values.RANKING_SALIDA_A_TIEMPO,
+      revocacionRecurrente: values.RANKING_REVOCACION_RECURRENTE,
+    },
+    recurrencia: {
+      zonaPiloto: values.RECURRENCIA_ZONA?.trim() || null,
+      topePct: values.RECURRENCIA_TOPE_PCT,
+      umbralPuntaje: values.RECURRENCIA_UMBRAL,
+      maxBloques: values.RECURRENCIA_MAX_BLOQUES,
     },
     vencimientosIntervaloS: values.VENCIMIENTOS_INTERVALO_S,
     avisos: { intervaloS: values.AVISOS_INTERVALO_S, expoAccessToken: values.EXPO_ACCESS_TOKEN?.trim() || null },

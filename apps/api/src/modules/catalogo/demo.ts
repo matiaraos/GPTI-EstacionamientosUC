@@ -50,3 +50,34 @@ export async function sembrarPlazasDemo(db: Database): Promise<PlazaDemo[]> {
   }
   return resultado;
 }
+
+/** Zona piloto de reservas recurrentes (07): diez plazas regulares en Estacionamiento Ingeniería. */
+export const ZONA_PILOTO_DEMO = { bloque: "PARKING-2", codigos: Array.from({ length: 10 }, (_, i) => `I${i + 1}`) } as const;
+
+/** Crea o completa las plazas, horario y QR de la zona piloto. Es idempotente. */
+export async function sembrarZonaPiloto(db: Database): Promise<PlazaDemo[]> {
+  const zona = await db.zona.findUnique({ where: { idOrigen: ZONA_PILOTO_DEMO.bloque } });
+  if (!zona) {
+    throw new Error(`Falta el bloque ${ZONA_PILOTO_DEMO.bloque}. Importa el catálogo antes de crear la zona piloto.`);
+  }
+  for (const horario of HORARIOS_DEMO) {
+    await db.horarioZona.upsert({
+      where: { zonaId_diaSemana: { zonaId: zona.id, diaSemana: horario.diaSemana } },
+      create: { zonaId: zona.id, ...horario },
+      update: horario,
+    });
+  }
+  const resultado: PlazaDemo[] = [];
+  for (const codigo of ZONA_PILOTO_DEMO.codigos) {
+    const plaza = await db.plaza.upsert({
+      where: { zonaId_codigo: { zonaId: zona.id, codigo } },
+      create: { zonaId: zona.id, codigo, tipo: "regular" },
+      update: {},
+    });
+    const vigente =
+      (await db.qrPlaza.findFirst({ where: { plazaId: plaza.id, revocadoEn: null } })) ??
+      (await db.qrPlaza.create({ data: { plazaId: plaza.id, identificador: nuevoIdentificadorQr() } }));
+    resultado.push({ bloque: ZONA_PILOTO_DEMO.bloque, zona: zona.nombre, codigo, qr: contenidoQr(vigente.identificador) });
+  }
+  return resultado;
+}

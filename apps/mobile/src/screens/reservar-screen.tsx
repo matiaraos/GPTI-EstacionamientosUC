@@ -186,6 +186,10 @@ export default function ReservarScreen() {
           <Button title="Unirme a la lista de espera" variant="secondary" icon="clock" onPress={confirmarEspera} loading={espera.isPending} />
         ) : null}
       </View>
+
+      <Section>
+        <ListRow icon="calendar" title="Reservas semanales" detail="Fija tus días y horario de cada semana" onPress={() => router.push("/series")} />
+      </Section>
     </FormScreen>
   );
 }

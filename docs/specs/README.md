@@ -16,7 +16,7 @@ La prioridad es una demo móvil con cuenta ficticia, destino y permanencia, rese
 | Flujos principales | [04B](04-reservas.md#04b--asignación-completa-y-espera) | Prioridad, cambios y espera | RF-06–09, RF-23, RNF-01 | 02B, 03B, 04A, 05B | En curso · [evidencia](#04b--evidencia) |
 | Flujos principales | [08A](08-operacion.md#08a--ocupación-e-incidentes) | Ocupación e incidentes | RF-19–20 | 02B, 05A | Verificada · [evidencia](#08a--evidencia) |
 | Piloto | [06](06-avisos.md#06--avisos) | Avisos y recordatorios | RF-16–17 | 04B, 05B | En curso · [evidencia](#06--evidencia) |
-| Piloto | [07](07-recurrencia.md#07--reservas-recurrentes) | Recurrencia semanal | RF-22 | 06 | Pendiente |
+| Piloto | [07](07-recurrencia.md#07--reservas-recurrentes) | Recurrencia semanal | RF-22 | 06 | En curso · [evidencia](#07--evidencia) |
 | Piloto | [08B](08-operacion.md#08b--indicadores-y-cierre-del-piloto) | Indicadores y cierre | RF-21 y RNF del piloto | 01B, 07, 08A | Pendiente |
 
 02A y 03A pueden avanzar en paralelo. Para desarrollar 03A, usar un catálogo de prueba con el contrato compartido en la spec 02. Integrar el catálogo geográfico de San Joaquín con plazas de prueba al cerrar 04A. La asignación ordena los bloques por su cercanía al destino. 01B, 02B, 03B y 05B se pueden tomar por separado al cumplir sus dependencias. La demo usa solo plazas regulares.
@@ -216,3 +216,18 @@ Rama `tramo/06-avisos`. Pruebas en `apps/api/test/avisos.test.js` contra Postgre
 | Consultar el estado si la entrega falla | Verificado (API) · Compilación (app) | `GET /avisos` muestra cada aviso con su estado de entrega y los recordatorios programados. App: Cuenta → Avisos y registro del dispositivo con `expo-notifications`; al tocar una notificación abre Mi reserva. `tsc` y `expo export` pasan. |
 
 **Pendiente para piloto** · Las notificaciones remotas requieren una compilación con proyecto EAS (`extra.eas.projectId`); en Expo Go los avisos llegan por correo y a la bandeja. Confirmar proveedores y probar la entrega en un dispositivo del piloto antes de dar por verificado el canal.
+
+### 07 · Evidencia
+
+Rama `tramo/07-recurrencia`. Pruebas en `apps/api/test/recurrencia.test.js` contra PostgreSQL real con la zona piloto de prueba (PARKING-2, Estacionamiento Ingeniería, 10 plazas). `SerieReserva` y `BloqueSerie`; cada ocurrencia es una reserva normal con `(bloqueSerieId, fechaOcurrencia)` único. Parámetros configurables: zona piloto, tope 30 %, puntaje mínimo 100, 5 bloques por persona y −10 adicional al revocar (SC-001).
+
+| Criterio | Estado | Evidencia |
+| --- | --- | --- |
+| Serie y ocurrencias con el mismo orden de cercanía y control de conflictos | Verificado (API) | Crear una serie de lunes y miércoles genera las reservas del 23 y 25 de noviembre en la zona piloto con la asignación diaria (bloqueo por fecha, restricciones de exclusión y aviso); el reintento con la misma clave devuelve la misma serie. |
+| En una zona de diez plazas, una serie que excede tres plazas recurrentes se rechaza; la reserva diaria sigue disponible | Verificado (API) | La cuarta serie responde `409 tope_recurrente` («3 de 3 plazas… 30 % de 10») y esa cuenta reserva por día sin problema. Seis creaciones simultáneas: tres aceptadas y tres rechazadas (bloqueo consultivo por zona en la misma transacción). |
+| Elegibilidad y límite de bloques | Verificado (API) | Con 90 puntos responde `403 no_elegible`; seis bloques superan el máximo de cinco. |
+| Semana cumplida se renueva sin duplicados; incumplida no se renueva | Verificado (API) | El sábado se genera la semana siguiente; repetir la tarea, también en paralelo, no duplica. El viernes no actúa. Una salida vencida en la semana revisada revoca la serie el domingo y no la renueva. |
+| Cancelación por fecha, de serie y ausencia | Verificado (API) | Cancelar una fecha conserva la serie y el registro de esa fecha, que la renovación no recrea. Cancelar la serie libera las fechas futuras y el cupo de la zona. Una ausencia (09:16 del lunes) revoca la serie al momento, cancela el miércoles y aplica −10 por ausencia y −10 por revocación una sola vez, con aviso. |
+| App | Compilación | Reservar → Reservas semanales: requisitos (puntaje, bloques, cupo de la zona), series con sus fechas, cancelar una fecha o la serie, y nueva serie con días, horario y destino (o el de las clases). `tsc` y `expo export` pasan. **Pendiente**: recorrer en el teléfono. |
+
+**Pendiente para piloto** · Confirmar el umbral de elegibilidad, los límites de bloques por persona, la zona piloto y la penalización con los escenarios PP-29–34.

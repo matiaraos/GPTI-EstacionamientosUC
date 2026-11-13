@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { loadConfig } from "../src/config.js";
 import { createDatabase } from "../src/lib/prisma.js";
 import { importarCursosUC, leerCursosUC } from "../src/modules/catalogo/cursos-uc.js";
-import { sembrarPlazasDemo } from "../src/modules/catalogo/demo.js";
+import { sembrarPlazasDemo, sembrarZonaPiloto } from "../src/modules/catalogo/demo.js";
 import { directorioCatalogo, importarCatalogo, leerFuentesCatalogo } from "../src/modules/catalogo/importar.js";
 import { dominioDeCorreo, normalizarCorreo } from "../src/modules/cuentas/normalizacion.js";
 
@@ -38,7 +38,7 @@ async function main() {
     const cursos = await importarCursosUC(db, await leerCursosUC(directorioCatalogo));
     console.log(`Cursos UC: ${cursos.secciones} secciones, ${cursos.actividades} actividades y ${cursos.perfiles} estudiantes de prueba.`);
     console.log("Plazas de demo (contenido de cada QR):");
-    for (const plaza of await sembrarPlazasDemo(db)) {
+    for (const plaza of [...(await sembrarPlazasDemo(db)), ...(await sembrarZonaPiloto(db))]) {
       console.log(`  ${plaza.zona} · ${plaza.codigo} → ${plaza.qr}`);
     }
   } finally {

@@ -43,9 +43,9 @@ export async function registrarAviso(
 }
 
 /** Aviso del resultado de una asignación: confirmación, cambio o plaza obtenida desde la espera. */
-export async function avisarAsignacion(tx: Tx, reserva: ReservaAviso, origen: "solicitud" | "cambio" | "espera", ahora: Date) {
+export async function avisarAsignacion(tx: Tx, reserva: ReservaAviso, origen: "solicitud" | "cambio" | "espera" | "serie", ahora: Date) {
   const tipo: TipoAviso = origen === "cambio" ? "cambio" : origen === "espera" ? "espera_asignada" : "confirmacion";
-  const titulo = { confirmacion: "Reserva confirmada", cambio: "Cambio de reserva confirmado", espera_asignada: "Se liberó una plaza para ti" }[
+  const titulo = origen === "serie" ? "Reserva semanal confirmada" : { confirmacion: "Reserva confirmada", cambio: "Cambio de reserva confirmado", espera_asignada: "Se liberó una plaza para ti" }[
     tipo as "confirmacion" | "cambio" | "espera_asignada"
   ];
   await registrarAviso(tx, {
@@ -60,14 +60,16 @@ export async function avisarAsignacion(tx: Tx, reserva: ReservaAviso, origen: "s
   await programarRecordatorios(tx, reserva, ahora);
 }
 
-export async function avisarCancelacion(tx: Tx, reserva: ReservaAviso, ahora: Date) {
+export async function avisarCancelacion(tx: Tx, reserva: ReservaAviso, ahora: Date, motivo?: string) {
   await registrarAviso(tx, {
     cuentaId: reserva.cuentaId,
     reservaId: reserva.id,
     tipo: "cancelacion",
     clave: `cancelacion:reserva:${reserva.id}`,
     titulo: "Reserva cancelada",
-    cuerpo: `Cancelaste la reserva del ${horarioDe(reserva)} (${plazaDe(reserva)}). La plaza quedó libre.`,
+    cuerpo: motivo
+      ? `Se canceló tu reserva del ${horarioDe(reserva)} (${plazaDe(reserva)}): ${motivo}`
+      : `Cancelaste la reserva del ${horarioDe(reserva)} (${plazaDe(reserva)}). La plaza quedó libre.`,
     ahora,
   });
   await cancelarRecordatorios(tx, reserva.id, ahora);

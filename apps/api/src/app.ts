@@ -10,6 +10,7 @@ import { crearRutasCuentas } from "./modules/cuentas/rutas.js";
 import { crearRutasHorario } from "./modules/horario/rutas.js";
 import { crearRutasInventario } from "./modules/inventario/rutas.js";
 import { crearRutasOperacion } from "./modules/operacion/rutas.js";
+import { crearRutasRecurrencia } from "./modules/recurrencia/rutas.js";
 import { crearRutasRanking } from "./modules/ranking/rutas.js";
 import { crearRutasReservas } from "./modules/reservas/rutas.js";
 import { crearRutasVisitas } from "./modules/visitas/rutas.js";
@@ -59,6 +60,7 @@ export function createApp(deps: AppDeps) {
   app.use(crearRutasInventario({ db, clock, reservas: config.reservas, ranking: config.ranking }));
   app.use(crearRutasHorario({ db, clock }));
   app.use(crearRutasOperacion({ db, clock, reservas: config.reservas, ranking: config.ranking }));
+  app.use(crearRutasRecurrencia({ db, clock, reservas: config.reservas, ranking: config.ranking, recurrencia: config.recurrencia }));
   app.use(crearRutasRanking({ db, clock, reservas: config.reservas, ranking: config.ranking }));
   app.use(crearRutasReservas({ db, clock, config: config.reservas, ranking: config.ranking }));
 

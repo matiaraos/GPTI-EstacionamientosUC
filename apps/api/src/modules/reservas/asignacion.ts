@@ -40,7 +40,12 @@ const minutos = (hora: string) => {
  * luego ID de bloque. Dentro del bloque, una persona habilitada usa primero las preferentes para no
  * restar plazas regulares; después, ID de plaza. Los bloques sin distancia al destino quedan al final.
  */
-export async function buscarCandidatas(db: Cliente, visita: VisitaAsignable, preferente = false): Promise<Candidata[]> {
+export async function buscarCandidatas(
+  db: Cliente,
+  visita: VisitaAsignable,
+  preferente = false,
+  zonaId: number | null = null,
+): Promise<Candidata[]> {
   const { diaSemana } = partesLocales(visita.inicio);
   const tipos = preferente ? ["regular", "preferente"] : ["regular"];
   return db.$queryRaw<Candidata[]>`
@@ -54,6 +59,7 @@ export async function buscarCandidatas(db: Cliente, visita: VisitaAsignable, pre
     LEFT JOIN "CercaniaBloque" c ON c."zonaId" = z."id" AND c."destinoId" = ${visita.destino.id}
     LEFT JOIN "CercaniaBloque" d ON d."zonaId" = z."id" AND d."destinoId" = ${visita.destinoDesempate?.id ?? null}::int
     WHERE p."activa" AND p."tipo"::text = ANY(${tipos}::text[])
+      AND (${zonaId}::int IS NULL OR z."id" = ${zonaId}::int)
       AND NOT EXISTS (
         SELECT 1 FROM "BloqueoPlaza" b
         WHERE b."plazaId" = p."id"
@@ -80,6 +86,8 @@ export type Solicitud = {
   reemplazaId?: number;
   /** Solicitud de espera que se atiende; se marca asignada en la misma transacción. */
   esperaId?: number;
+  /** Ocurrencia de una serie semanal: se asigna solo en la zona de la serie (07). */
+  serie?: { zonaId: number; bloqueSerieId: number; fechaOcurrencia: Date };
 };
 
 export type ResultadoReserva = { reserva: ReservaConInclusiones; reintento: boolean };
@@ -171,7 +179,7 @@ export async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: 
 
   const ahora = clock();
   const preferente = await puedeUsarPreferentes(tx, solicitud.cuentaId, ahora, visita.inicio);
-  const candidatas = await buscarCandidatas(tx, visita, preferente);
+  const candidatas = await buscarCandidatas(tx, visita, preferente, solicitud.serie?.zonaId ?? null);
   const elegida = candidatas.find((candidata) => candidata.metodo !== null && candidata.metros !== null);
   if (candidatas.length === 0) {
     throw sinCupo();
@@ -198,12 +206,19 @@ export async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: 
       metros: elegida.metros!,
       metodoDistancia: elegida.metodo!,
       reemplazaId: solicitud.reemplazaId ?? null,
+      bloqueSerieId: solicitud.serie?.bloqueSerieId ?? null,
+      fechaOcurrencia: solicitud.serie?.fechaOcurrencia ?? null,
       creadaEn: ahora,
     },
     include: incluirReserva,
   });
   // El aviso se registra con la reserva: si la transacción se revierte, tampoco queda el aviso.
-  await avisarAsignacion(tx, reserva, solicitud.esperaId ? "espera" : solicitud.reemplazaId ? "cambio" : "solicitud", ahora);
+  await avisarAsignacion(
+    tx,
+    reserva,
+    solicitud.esperaId ? "espera" : solicitud.reemplazaId ? "cambio" : solicitud.serie ? "serie" : "solicitud",
+    ahora,
+  );
   if (solicitud.esperaId) {
     // La espera se asigna una sola vez: si otra transacción ya la atendió o se canceló, se revierte todo.
     const { count } = await tx.solicitudEspera.updateMany({
