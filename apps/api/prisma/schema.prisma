@@ -277,6 +277,8 @@ model Cuenta {
   rectificaciones         AjusteRanking[]          @relation("Rectificaciones")
   solicitudEsperas        SolicitudEspera[]
   conexionUC              ConexionUC?
+  canalesAviso            CanalAviso[]
+  avisos                  Aviso[]
   incidentesReportados    Incidente[]              @relation("IncidentesReportados")
   incidentesResueltos     Incidente[]              @relation("IncidentesResueltos")
 }
@@ -369,6 +371,7 @@ model Reserva {
   eventos            EventoReserva[]
   ajustes            AjusteRanking[]
   incidentes         Incidente[]
+  avisos             Aviso[]
 
   @@unique([cuentaId, claveIdempotencia])
   @@index([destinoDesempateId])
@@ -492,6 +495,67 @@ model AjusteRanking {
   @@index([incidenteId])
   @@index([reservaId])
   @@index([autorRectificacionId])
+}
+
+enum TipoAviso {
+  confirmacion
+  cancelacion
+  cambio
+  sin_cupo
+  espera_asignada
+  recordatorio_clase
+  recordatorio_salida
+}
+
+enum EstadoAviso {
+  pendiente
+  enviando
+  enviado
+  fallido
+  cancelado
+}
+
+enum CanalEnvio {
+  push
+  correo
+}
+
+/// Dispositivo que recibe notificaciones (token de Expo Push).
+model CanalAviso {
+  id            Int      @id @default(autoincrement())
+  cuentaId      Int
+  cuenta        Cuenta   @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  token         String   @unique
+  plataforma    String
+  activo        Boolean  @default(true)
+  actualizadoEn DateTime @db.Timestamptz(3)
+
+  @@index([cuentaId])
+}
+
+/// Bandeja de salida. Cada aviso se registra junto con el resultado que lo origina (misma transacción)
+/// y se envía después; `claveDeduplicacion` impide duplicarlo si la operación o el envío se repiten.
+model Aviso {
+  id                 Int         @id @default(autoincrement())
+  cuentaId           Int
+  cuenta             Cuenta      @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  reservaId          Int?
+  reserva            Reserva?    @relation(fields: [reservaId], references: [id], onDelete: SetNull)
+  tipo               TipoAviso
+  estado             EstadoAviso @default(pendiente)
+  claveDeduplicacion String      @unique
+  titulo             String
+  cuerpo             String
+  programadoEn       DateTime    @db.Timestamptz(3)
+  creadoEn           DateTime    @db.Timestamptz(3)
+  enviadoEn          DateTime?   @db.Timestamptz(3)
+  canal              CanalEnvio?
+  intentos           Int         @default(0)
+  ultimoError        String?
+
+  @@index([estado, programadoEn])
+  @@index([cuentaId, creadoEn])
+  @@index([reservaId])
 }
 
 enum TipoEvento {

@@ -21,6 +21,8 @@ const configSchema = z.object({
   RANKING_VENCIMIENTO: z.coerce.number().int().max(0).default(-5),
   RANKING_SALIDA_TARDIA: z.coerce.number().int().max(0).default(-3),
   RANKING_SALIDA_A_TIEMPO: z.coerce.number().int().min(0).default(1),
+  AVISOS_INTERVALO_S: z.coerce.number().int().min(0).default(30),
+  EXPO_ACCESS_TOKEN: z.string().optional(),
   VENCIMIENTOS_INTERVALO_S: z.coerce.number().int().min(0).default(60),
   MARGEN_PERIMETRO_M: z.coerce.number().min(0).max(1000).default(50),
 });
@@ -73,11 +75,13 @@ export type AppConfig = {
   ranking: RankingConfig;
   /** Cada cuántos segundos se procesan ausencias y vencimientos (0 = desactivado). */
   vencimientosIntervaloS: number;
+  /** Envío de avisos (06): intervalo en segundos (0 = desactivado) y token opcional de Expo Push. */
+  avisos: { intervaloS: number; expoAccessToken: string | null };
   correo: { smtpUrl: string | null; remitente: string };
 };
 
 /** Configuración que necesita `createApp`; el puerto, la base y el correo solo los usa el servidor. */
-export type RuntimeConfig = Omit<AppConfig, "port" | "databaseUrl" | "correo" | "vencimientosIntervaloS">;
+export type RuntimeConfig = Omit<AppConfig, "port" | "databaseUrl" | "correo" | "vencimientosIntervaloS" | "avisos">;
 
 export function parseEmailDomains(value: string): string[] {
   return value
@@ -139,6 +143,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       salidaATiempo: values.RANKING_SALIDA_A_TIEMPO,
     },
     vencimientosIntervaloS: values.VENCIMIENTOS_INTERVALO_S,
+    avisos: { intervaloS: values.AVISOS_INTERVALO_S, expoAccessToken: values.EXPO_ACCESS_TOKEN?.trim() || null },
     correo: { smtpUrl: values.SMTP_URL?.trim() || null, remitente: values.CORREO_REMITENTE },
   };
 }

@@ -5,6 +5,7 @@ import { HttpError } from "../../lib/errors.js";
 import type { Database } from "../../lib/prisma.js";
 import { esConflictoReintentable, esViolacionUnica, restriccionDeExclusion } from "../../lib/prisma-errors.js";
 import { partesLocales } from "../../lib/tiempo.js";
+import { avisarAsignacion, cancelarRecordatorios } from "../avisos/registro.js";
 import { estadoAutorizacion } from "../inventario/autorizaciones.js";
 import type { VisitaValidada } from "../visitas/validacion.js";
 import { incluirReserva, type ReservaConInclusiones } from "./presentacion.js";
@@ -201,6 +202,8 @@ export async function asignarEnTransaccion(tx: Prisma.TransactionClient, clock: 
     },
     include: incluirReserva,
   });
+  // El aviso se registra con la reserva: si la transacción se revierte, tampoco queda el aviso.
+  await avisarAsignacion(tx, reserva, solicitud.esperaId ? "espera" : solicitud.reemplazaId ? "cambio" : "solicitud", ahora);
   if (solicitud.esperaId) {
     // La espera se asigna una sola vez: si otra transacción ya la atendió o se canceló, se revierte todo.
     const { count } = await tx.solicitudEspera.updateMany({
@@ -303,6 +306,7 @@ export async function cambiarReserva(
           if (count === 0) {
             throw new HttpError(409, "reserva_no_modificable", "La reserva cambió de estado. Revisa Mi reserva.");
           }
+          await cancelarRecordatorios(tx, reservaId, clock());
           return asignarEnTransaccion(tx, clock, nueva);
         },
         { maxWait: 10_000, timeout: 10_000 },

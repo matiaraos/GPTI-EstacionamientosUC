@@ -1,6 +1,7 @@
 import type { ReservasConfig, RankingConfig } from "../../config.js";
 import type { Database } from "../../lib/prisma.js";
 import { atenderEsperas } from "../reservas/espera.js";
+import { cancelarRecordatorios } from "../avisos/registro.js";
 import { ajustarPorReserva } from "./ajustes.js";
 
 export type ResultadoVencimientos = { ausentes: number[]; vencidas: number[] };
@@ -43,6 +44,7 @@ export async function procesarVencimientos(
         data: { estado: ausencia ? "ausente" : "vencida", vencidaEn: ahora },
       });
       if (count === 0) return false;
+      await cancelarRecordatorios(tx, reserva.id, ahora);
       await ajustarPorReserva(tx, ranking, reserva, ausencia ? "ausencia" : "vencimiento", ahora);
       return true;
     });
