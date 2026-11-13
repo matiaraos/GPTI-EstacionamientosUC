@@ -22,7 +22,8 @@ docker compose up -d --wait db      # PostgreSQL 16 en 127.0.0.1:5433
 npm run db:deploy                   # aplica migraciones
 npm run dev:api                     # API en :3000 (tsx watch)
 npm run dev:admin                   # panel en :5173
-npm run dev:mobile                  # Metro para la dev build (no Expo Go)
+npm run dev:mobile                  # Metro para la dev build
+npm run dev:mobile:go               # Metro para Expo Go (ver README: USB, Wi‑Fi o emulador)
 npm run typecheck                   # todos los workspaces
 npm test                            # Jest de la API (compila antes; requiere la base levantada)
 npm run build

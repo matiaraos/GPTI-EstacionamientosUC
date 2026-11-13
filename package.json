@@ -12,6 +12,7 @@
     "dev:api": "npm run dev -w @miestacionamientouc/api",
     "dev:admin": "npm run dev -w @miestacionamientouc/admin",
     "dev:mobile": "npm run dev -w @miestacionamientouc/mobile",
+    "dev:mobile:go": "npm run dev:go -w @miestacionamientouc/mobile",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces",
     "test": "npm test -w @miestacionamientouc/api",
